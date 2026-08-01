@@ -931,7 +931,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         kamisData: baseCropModel.kamisData
       };
 
-      if (onSubmit) onSubmit(finalModel, assetsState, loansState);
+      if (onSubmit) onSubmit(finalModel, assetsState, loansState, true);
     });
   }
 
