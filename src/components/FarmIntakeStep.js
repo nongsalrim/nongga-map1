@@ -1,6 +1,6 @@
 /**
  * @file FarmIntakeStep.js
- * @description 거치기간 동안 원금상환 0원 엄격 보장 & 대출 발생이자 변동비(금융비용) 실시간 연동
+ * @description 거치기간 동안 원금상환 0원 엄격 보장 & 대출기간/거치기간 정규식 자동 추출 정밀 파서
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -24,10 +24,13 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
   let assetsState = JSON.parse(JSON.stringify(currentAssets || []));
   let loansState = JSON.parse(JSON.stringify(currentLoans || []));
 
-  // Default sample loan if empty (청창농 3.5억, 5년 거치 25년 상환)
+  // Default sample loans if empty (청창농 3.14억 5년거치, 충보 2억 2년거치 등)
   if (!loansState || loansState.length === 0) {
     loansState = [
-      { 대출조건: "원리금균등", 은행명: "농협 청년창업농 자금대출", 대출금액: 350000000, 이자율: 1.5, 대출기간: 25, 거치기간: 5 }
+      { 대출조건: "원리금균등", 은행명: "청창농 사업비 대출", 대출금액: 314000000, 이자율: 1.5, 대출기간: 25, 거치기간: 5 },
+      { 대출조건: "원금균등", 은행명: "충보 신용보증기금", 대출금액: 200000000, 이자율: 1.3, 대출기간: 5, 거치기간: 2 },
+      { 대출조건: "일시상환", 은행명: "운전자금 신용대출", 대출금액: 50000000, 이자율: 5.09, 대출기간: 2, 거치기간: 2 },
+      { 대출조건: "일시상환", 은행명: "시설 보구 신용대출", 대출금액: 60000000, 이자율: 5.08, 대출기간: 2, 거치기간: 2 }
     ];
   }
 
@@ -62,10 +65,22 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       let balance = parseNum(loan.대출금액 !== undefined ? loan.대출금액 : (loan.amount !== undefined ? loan.amount : loan.원금)) || 0;
       const rateVal = parseNum(loan.이자율 !== undefined ? loan.이자율 : (loan.rate !== undefined ? loan.rate : loan.금리)) || 1.5;
       const rate = rateVal > 1 ? rateVal / 100 : rateVal;
-      const period = parseNum(loan.대출기간 !== undefined ? loan.대출기간 : (loan.period !== undefined ? loan.period : loan.기간)) || 10;
-      const grace = parseNum(loan.거치기간 !== undefined ? loan.거치기간 : (loan.grace !== undefined ? loan.grace : loan.gracePeriod)) || 0;
-      const type = loan.대출조건 || loan.대출종류 || loan.type || '원리금균등';
 
+      let period = parseNum(loan.대출기간 !== undefined ? loan.대출기간 : (loan.period !== undefined ? loan.period : loan.기간));
+      if (!period && typeof loan.대출기간 === 'string') {
+        const match = loan.대출기간.match(/^(\d+)/);
+        if (match) period = parseInt(match[1], 10);
+      }
+      if (!period) period = 10;
+
+      let grace = parseNum(loan.거치기간 !== undefined ? loan.거치기간 : (loan.grace !== undefined ? loan.grace : loan.gracePeriod));
+      if (!grace && typeof loan.대출기간 === 'string') {
+        const match = loan.대출기간.match(/(\d+)\s*년\s*거치/);
+        if (match) grace = parseInt(match[1], 10);
+      }
+      if (!grace) grace = 0;
+
+      const type = loan.대출조건 || loan.대출종류 || loan.type || '원리금균등';
       const repayYears = Math.max(1, period - grace);
 
       for (let y = 1; y <= 5; y++) {
@@ -590,8 +605,20 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                   const amount = parseNum(loan.대출금액 !== undefined ? loan.대출금액 : (loan.amount !== undefined ? loan.amount : loan.원금)) || 0;
                   const rateVal = parseNum(loan.이자율 !== undefined ? loan.이자율 : (loan.rate !== undefined ? loan.rate : loan.금리)) || 1.5;
                   const rate = rateVal > 1 ? rateVal : rateVal * 100;
-                  const period = parseNum(loan.대출기간 !== undefined ? loan.대출기간 : (loan.period !== undefined ? loan.period : loan.기간)) || 10;
-                  const grace = parseNum(loan.거치기간 !== undefined ? loan.거치기간 : (loan.grace !== undefined ? loan.grace : loan.gracePeriod)) || 0;
+                  
+                  let period = parseNum(loan.대출기간 !== undefined ? loan.대출기간 : (loan.period !== undefined ? loan.period : loan.기간));
+                  if (!period && typeof loan.대출기간 === 'string') {
+                    const match = loan.대출기간.match(/^(\d+)/);
+                    if (match) period = parseInt(match[1], 10);
+                  }
+                  if (!period) period = 10;
+
+                  let grace = parseNum(loan.거치기간 !== undefined ? loan.거치기간 : (loan.grace !== undefined ? loan.grace : loan.gracePeriod));
+                  if (!grace && typeof loan.대출기간 === 'string') {
+                    const match = loan.대출기간.match(/(\d+)\s*년\s*거치/);
+                    if (match) grace = parseInt(match[1], 10);
+                  }
+                  if (!grace) grace = 0;
 
                   return `
                     <tr>
