@@ -1,6 +1,6 @@
 /**
  * @file FarmIntakeStep.js
- * @description 거치기간 동안 원금상환 0원 엄격 보장 & 동적 상환구분 뱃지 (전액거치 / 혼합상환 / 원리금상환)
+ * @description 거치기간 원금상환 0원 보장 & 순수 대출이자만 변동비(금융비용)에 100% 연동
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -53,7 +53,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     return `${formattedNum}만 원`;
   };
 
-  // Calculate 5-Year Debt Repayment Schedule with dynamic grace & repayment tracking
+  // Calculate 5-Year Debt Repayment Schedule
   function calc5YearSchedule(loans) {
     const schedule = [1, 2, 3, 4, 5].map(y => ({
       year: y,
@@ -84,7 +84,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         const match = loan.대출기간.match(/(\d+)\s*년\s*거치/);
         if (match) grace = parseInt(match[1], 10);
       }
-      if (!grace) grace = 0;
+      if (grace === undefined) grace = 0;
 
       const type = loan.대출조건 || loan.대출종류 || loan.type || '원리금균등';
       const repayYears = Math.max(1, period - grace);
@@ -96,11 +96,9 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         let i = Math.round(balance * rate);
 
         if (y <= grace) {
-          // 거치기간: 원금 상환은 0원
           p = 0;
           schedule[y - 1].graceCount++;
         } else {
-          // 상환기간: 원금 상환 진행
           schedule[y - 1].repayCount++;
           if (type === '원금균등') {
             p = Math.min(balance, Math.round((parseNum(loan.대출금액) || 0) / repayYears));
@@ -178,7 +176,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         { name: '광열비/동력비', key: '기타비용 및 광열비', cost: rdaScaledCosts['기타비용 및 광열비'] || Math.round(10400000 * totalScaleFactor) },
         { name: '고용인건비', key: '고용인건비', cost: Math.round(15000000 * totalScaleFactor) },
         { name: '기타재료비', key: '기타재료비', cost: rdaScaledCosts['기타재료비'] || Math.round(33000000 * totalScaleFactor) },
-        { name: '대출이자 (금융비용)', key: '대출이자', cost: year1InterestTotal, isAutoSynced: true }
+        { name: '대출이자 (순수 금융비용)', key: '대출이자', cost: year1InterestTotal, isAutoSynced: true }
       ],
       fixed: [
         { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: totalAssetsDepreciation > 0 ? totalAssetsDepreciation : (rdaScaledCosts['대농구/시설상각비'] || Math.round(15600000 * totalScaleFactor)), isAutoSynced: totalAssetsDepreciation > 0 },
@@ -188,7 +186,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       ]
     };
 
-    toastMsg = `✅ [농진청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 / ${farmState.cycles}기작) 평균 예산 및 거치이자 자동 반영 완료!`;
+    toastMsg = `✅ [농진청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 / ${farmState.cycles}기작) 평균 예산 및 순수 대출이자 연동 완료!`;
   }
 
   function renderForm() {
@@ -226,13 +224,13 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         depItem.isAutoSynced = true;
       }
 
-      const intItem = costItemsState.variable.find(i => i.name === '대출이자 (금융비용)' || i.key === '대출이자');
+      const intItem = costItemsState.variable.find(i => i.name.includes('대출이자') || i.key === '대출이자');
       if (intItem) {
         intItem.cost = year1InterestTotal;
         intItem.isAutoSynced = true;
       } else {
         costItemsState.variable.push({
-          name: '대출이자 (금융비용)',
+          name: '대출이자 (순수 금융비용)',
           key: '대출이자',
           cost: year1InterestTotal,
           isAutoSynced: true
@@ -267,7 +265,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             📝 농가 경영체 정밀 데이터 입력 센터
           </h1>
           <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 880px;">
-            대출 거치기간 동안 <b>원금 상환은 0원이며 이자만 납입</b>됩니다. 대출 거치기간 및 상환방식을 변경하면 <b>연도별 상환 구분과 뱃지가 즉시 실시간 동적 변경</b>됩니다.
+            원금 상환금은 부채 상환 자금으로 경영비에서 제외되며, <b>순수 발생 대출이자(금융비용)만 변동비에 100% 자동 연동</b>됩니다.
           </p>
         </div>
 
@@ -380,7 +378,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 📋 2. 경영비 세부 비목별 예산 입력 (변동비 vs 고정비 구분)
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
-                우측의 <b>[농진청 ${farmState.region}지역 소득조사표 평균 가이드]</b> 및 아래 <b>[대출 이자 연동]</b>을 참조하세요.
+                원금 상환액은 경영비에서 제외되며, <b>[대출 이자(금융비용)]만 100% 자동 연동</b>됩니다.
               </p>
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
@@ -430,7 +428,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                       return `
                         <tr>
                           <td style="font-weight:600; color:#E2E8F0;">
-                            ${item.name} ${isSynced ? `<span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10B981; padding:2px 6px; border-radius:4px; margin-left:4px;">⚡대출연동</span>` : ''}
+                            ${item.name} ${isSynced ? `<span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10B981; padding:2px 6px; border-radius:4px; margin-left:4px;">⚡순수이자만 연동</span>` : ''}
                           </td>
                           <td>
                             <input type="text" class="v-cost-var-input" data-idx="${idx}" value="${formatComma(item.cost)}" style="text-align:right; background:#0F172A; border:1px solid ${isSynced ? '#10B981' : 'rgba(255,255,255,0.15)'}; color:${isSynced ? '#10B981' : '#FFF'}; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
@@ -576,7 +574,9 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               <h2 style="font-size: 17px; font-weight: 800; color: #EF4444; display: flex; align-items: center; gap: 8px;">
                 💳 4. 농가 대출 및 부채 현황 (총 부채액: <span style="color:#EF4444;">${formatMoney(totalLoansAmount)}</span>)
               </h2>
-              <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">대출 거치기간이나 상환기간을 변경하면 <b>아래 연도별 상환 스케줄과 상환 구분 뱃지가 즉시 동적 재계산</b>됩니다.</p>
+              <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
+                대출 원금 상환액은 경영비(원가)에서 제외되며, <b>순수 발생 대출이자(금융비용)만 변동비 항목에 100% 연동</b>됩니다.
+              </p>
             </div>
             <button id="intake-add-loan-btn" class="btn-upload" style="background: #EF4444; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;">+ 새 대출 항목 추가</button>
           </div>
@@ -643,14 +643,14 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
               <div>
                 <h3 style="font-size:15px; font-weight:800; color:#EF4444; display:flex; align-items:center; gap:6px;">
-                  📅 5개년 연도별 대출 원리금 상환 시뮬레이션 (동적 상환구분 뱃지)
+                  📅 5개년 연도별 대출 원리금 상환 시뮬레이션
                 </h3>
                 <p style="font-size:12px; color:#94A3B8; margin-top:2px;">
-                  등록된 ${loansState.length}개 대출의 1년 차 ~ 5년 차 연도별 상환 원금, 이자 및 총 상환 부담액입니다.
+                  등록된 ${loansState.length}개 대출의 연도별 상환 원금 및 순수 발생 이자 현황입니다.
                 </p>
               </div>
               <span class="badge" style="background:rgba(239,68,68,0.2); color:#FCA5A5; border:1px solid rgba(239,68,68,0.3); font-size:12px; font-weight:700;">
-                1년 차 발생 이자/상환액: ${formatMoney(schedule5Years[0]?.total || 0)}
+                1년 차 발생 이자: ${formatMoney(year1InterestTotal)}
               </span>
             </div>
 
@@ -661,7 +661,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                     <th style="text-align:center; padding:10px;">연도</th>
                     <th style="text-align:center;">상환 구분</th>
                     <th style="text-align:right;">상환 원금(원)</th>
-                    <th style="text-align:right; color:#FBBF24;">발생 이자(원)</th>
+                    <th style="text-align:right; color:#FBBF24;">발생 이자(원) ⚡연동</th>
                     <th style="text-align:right; color:#EF4444;">연간 총 상환액(원)</th>
                     <th style="text-align:right;">기말 대출 잔액(원)</th>
                   </tr>
@@ -684,7 +684,9 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                         <td style="text-align:right; font-family: Pretendard, monospace; font-weight:700; color:${item.principal === 0 ? '#94A3B8' : '#FFF'};">
                           ${item.principal === 0 ? '0 원 (원금 유예)' : formatMoney(item.principal)}
                         </td>
-                        <td style="text-align:right; color:#FBBF24; font-family: Pretendard, monospace; font-weight:700;">${formatMoney(item.interest)}</td>
+                        <td style="text-align:right; color:#FBBF24; font-family: Pretendard, monospace; font-weight:800;">
+                          ${formatMoney(item.interest)}
+                        </td>
                         <td style="text-align:right; color:#EF4444; font-family: Pretendard, monospace; font-weight:800; font-size:14px;">${formatMoney(item.total)}</td>
                         <td style="text-align:right; color:#94A3B8; font-family: Pretendard, monospace;">${formatMoney(item.remainingBalance)}</td>
                       </tr>
@@ -694,9 +696,9 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               </table>
             </div>
 
-            <!-- 대출 이자 변동비 연동 안내 카드 -->
-            <div style="margin-top:14px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px; padding:10px 16px; font-size:12px; color:#A7F3D0; display:flex; align-items:center; justify-content:space-between;">
-              <span>⚡ <b>변동비 자동 연동 안내</b>: 위 1년 차 발생 이자 <b>${formatMoney(year1InterestTotal)}</b>가 [🌱 변동비 ➔ 대출이자(금융비용)] 항목으로 실시간 100% 자동 연동 반영되고 있습니다.</span>
+            <!-- 대출 이자만 변동비 연동 안내 카드 -->
+            <div style="margin-top:14px; background:rgba(16,185,129,0.1); border:1px solid #10B981; border-radius:8px; padding:12px 18px; font-size:13px; color:#A7F3D0; display:flex; align-items:center; justify-content:space-between;">
+              <span>⚡ <b>경영 컨설팅 회계 원칙</b>: 원금 상환금은 부채 상환 자금으로 경영비에서 제외되며, <b>순수 발생 대출 이자 (${formatMoney(year1InterestTotal)})만 [🌱 변동비 ➔ 대출이자(순수 금융비용)] 항목에 100% 자동 연동</b>됩니다.</span>
             </div>
           </div>
 
