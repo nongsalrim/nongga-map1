@@ -1,6 +1,6 @@
 /**
  * @file FarmIntakeStep.js
- * @description 엑셀 양식과 100% 동일한 7대 표준 컬럼 (농가명, 지역, 작목분류, 작목명, 면적(㎡), 평, 기작) 데이터 입력 센터
+ * @description 엑셀 양식과 100% 동일한 7대 표준 컬럼 + 변동비/고정비 세부 비목 구분 & 농진청 지역 평균 가이드 연동 입력 센터
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -24,25 +24,62 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
   let assetsState = JSON.parse(JSON.stringify(currentAssets || []));
   let loansState = JSON.parse(JSON.stringify(currentLoans || []));
 
+  // Default detailed cost state (Variable & Fixed)
+  let costItemsState = currentModel.costItemsState || null;
+
   const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(val)) + ' 원';
+  const formatShortMoney = (val) => {
+    const million = Math.round(val / 10000);
+    return new Intl.NumberFormat('ko-KR').format(million) + '만 원';
+  };
 
   function renderForm() {
     baseCropModel = FULL_CROP_DATABASE[farmState.cropName] || FULL_CROP_DATABASE['시설상추'];
     
-    // Auto calculate scaled revenue & expenses based on Pyung & Cycles
+    // Auto calculate scale factor based on Pyung & Cycles
     const areaScaleFactor = (farmState.areaPyung || 800) / (baseCropModel.areaPyung || 1000);
     const cycleScaleFactor = (farmState.cycles || 1) / (baseCropModel.cycles || 1);
     const totalScaleFactor = areaScaleFactor * cycleScaleFactor;
 
-    const calculatedRevenue = Math.round(baseCropModel.revenue * totalScaleFactor);
-    const calculatedExpenses = Math.round(baseCropModel.operatingExpenses * totalScaleFactor);
-    const calculatedIncome = calculatedRevenue - calculatedExpenses;
+    // RDA Benchmark cost breakdown scaled for current farm size
+    const rdaScaledCosts = (baseCropModel.costBreakdown || []).reduce((acc, item) => {
+      acc[item.name] = Math.round(item.cost * totalScaleFactor);
+      return acc;
+    }, {});
 
-    const scaledCostBreakdown = (baseCropModel.costBreakdown || []).map(item => ({
-      name: item.name,
-      cost: Math.round(item.cost * totalScaleFactor),
-      percent: item.percent
-    }));
+    // Initialize or sync costItemsState if crop/size changed
+    if (!costItemsState || costItemsState._cropName !== farmState.cropName || costItemsState._scale !== totalScaleFactor) {
+      costItemsState = {
+        _cropName: farmState.cropName,
+        _scale: totalScaleFactor,
+        // 변동비 (Variable Costs)
+        variable: [
+          { name: '종자/종묘비', key: '종자/종묘비', cost: rdaScaledCosts['종자/종묘비'] || Math.round(12500000 * totalScaleFactor) },
+          { name: '보통비료비', key: '보통비료비', cost: rdaScaledCosts['보통비료비'] || Math.round(8300000 * totalScaleFactor) },
+          { name: '부산물비료비', key: '부산물비료비', cost: rdaScaledCosts['부산물비료비'] || Math.round(7300000 * totalScaleFactor) },
+          { name: '농약비', key: '농약비', cost: rdaScaledCosts['농약비'] || Math.round(5200000 * totalScaleFactor) },
+          { name: '광열비/동력비', key: '기타비용 및 광열비', cost: rdaScaledCosts['기타비용 및 광열비'] || Math.round(10400000 * totalScaleFactor) },
+          { name: '고용인건비', key: '고용인건비', cost: Math.round(15000000 * totalScaleFactor) },
+          { name: '기타재료비', key: '기타재료비', cost: rdaScaledCosts['기타재료비'] || Math.round(33000000 * totalScaleFactor) }
+        ],
+        // 고정비 (Fixed Costs)
+        fixed: [
+          { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: rdaScaledCosts['대농구/시설상각비'] || Math.round(15600000 * totalScaleFactor) },
+          { name: '자동차/운반비', key: '자동차비', cost: rdaScaledCosts['자동차비'] || Math.round(11400000 * totalScaleFactor) },
+          { name: '수리 및 유지관리비', key: '수리비', cost: Math.round(4500000 * totalScaleFactor) },
+          { name: '임차료/기타 고정비', key: '기타고정비', cost: Math.round(6800000 * totalScaleFactor) }
+        ]
+      };
+    }
+
+    const calculatedRevenue = Math.round(baseCropModel.revenue * totalScaleFactor);
+    
+    // Sum total expenses from costItemsState
+    const totalVariableExpenses = costItemsState.variable.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+    const totalFixedExpenses = costItemsState.fixed.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+    const calculatedExpenses = totalVariableExpenses + totalFixedExpenses;
+
+    const calculatedIncome = calculatedRevenue - calculatedExpenses;
 
     const totalAssetsCost = assetsState.reduce((sum, a) => sum + (Number(a.구입가) || 0), 0);
     const totalLoansAmount = loansState.reduce((sum, l) => sum + (Number(l.대출금액) || 0), 0);
@@ -63,8 +100,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           <h1 style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 6px;">
             📝 농가 경영체 정밀 데이터 입력 센터
           </h1>
-          <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 760px;">
-            컨설팅 표준 엑셀 양식의 <b>[농가명, 지역, 작목분류, 작목명, 면적(㎡), 평, 기작]</b> 데이터를 입력하시면 농진청 소득조사표 & KAMIS 유통시세 DB와 즉시 자동 연동됩니다.
+          <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 800px;">
+            컨설팅 표준 엑셀 양식의 <b>[농가명, 지역, 작목분류, 작목명, 면적(㎡), 평, 기작]</b> 및 <b>[변동비/고정비 세부 예산]</b>을 입력하시면 농진청 소득조사표 지역 평균 가이드와 실시간 비교 연동됩니다.
           </p>
         </div>
 
@@ -74,7 +111,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             <h2 style="font-size: 17px; font-weight: 800; color: #10B981; display: flex; align-items: center; gap: 8px;">
               📊 1. 농가 경영체 기본 데이터 (엑셀 표준 입력 양식)
             </h2>
-            <span style="font-size: 12px; color: #94A3B8;">* 면적(㎡)과 평수는 자동 상호 환산되며 작목 변경 시 소득조사표가 연동됩니다.</span>
+            <span style="font-size: 12px; color: #94A3B8;">* 작목 변경 시 농진청 지역 평균 소득조사표 예산이 자동 업데이트됩니다.</span>
           </div>
 
           <div class="data-table-container">
@@ -124,48 +161,127 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               </tbody>
             </table>
           </div>
+        </div>
 
-          <!-- 소득조사표 & KAMIS 시세 자동 연동 결과 미리보기 패널 -->
-          <div style="margin-top: 20px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-              <span style="font-size: 14px; font-weight: 800; color: #10B981; display:flex; align-items:center; gap:6px;">
-                ⚡ 소득조사표 & KAMIS 유통정보 자동 산출 결과 미리보기
-              </span>
-              <span style="font-size:12px; color:#94A3B8;">
-                [${farmState.region}] ${farmState.cropName} (${farmState.areaPyung}평 / ${farmState.cycles}기작 기준)
+        <!-- 2. 경영비 세부 비목 입력 (변동비 vs 고정비 구분 & 농진청 지역 평균 가이드) -->
+        <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #FFF; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap:wrap; gap:10px;">
+            <div>
+              <h2 style="font-size: 17px; font-weight: 800; color: #F59E0B; display: flex; align- items: center; gap: 8px;">
+                📋 2. 경영비 세부 비목별 예산 입력 (변동비 vs 고정비 구분)
+              </h2>
+              <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
+                우측의 <b>[농진청 ${farmState.region}지역 소득조사표 평균 가이드]</b>를 참조하여 농가의 실제 예산을 입력하세요.
+              </p>
+            </div>
+            <div style="text-align:right;">
+              <span class="badge" style="background:rgba(245,158,11,0.2); color:#F59E0B; border:1px solid rgba(245,158,11,0.3); font-size:13px; font-weight:700;">
+                총 경영비 합계: ${formatMoney(calculatedExpenses)}
               </span>
             </div>
+          </div>
 
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
-              <div style="background:#0F172A; padding:12px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                <div style="font-size:11px; color:#94A3B8;">추정 총수입 (매출액)</div>
-                <div style="font-size:16px; font-weight:800; color:#38BDF8; margin-top:2px;">${formatMoney(calculatedRevenue)}</div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            
+            <!-- 변동비 (Variable Costs) -->
+            <div style="background:rgba(16,185,129,0.04); border:1px solid rgba(16,185,129,0.25); border-radius:12px; padding:18px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid rgba(16,185,129,0.2); padding-bottom:10px;">
+                <h3 style="font-size:15px; font-weight:800; color:#10B981; display:flex; align-items:center; gap:6px;">
+                  🌱 변동비 (Variable Costs)
+                </h3>
+                <span style="font-size:13px; font-weight:700; color:#34D399;">소계: ${formatMoney(totalVariableExpenses)}</span>
               </div>
 
-              <div style="background:#0F172A; padding:12px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                <div style="font-size:11px; color:#94A3B8;">추정 경영비 (원가합계)</div>
-                <div style="font-size:16px; font-weight:800; color:#F87171; margin-top:2px;">${formatMoney(calculatedExpenses)}</div>
-              </div>
+              <div class="data-table-container">
+                <table class="data-table" style="font-size:13px;">
+                  <thead>
+                    <tr>
+                      <th>세부 비목명</th>
+                      <th>농가 입력 예산(원)</th>
+                      <th style="color:#10B981; text-align:right;">농진청 지역 평균 가이드</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${costItemsState.variable.map((item, idx) => {
+                      const guideCost = rdaScaledCosts[item.key] || item.cost;
+                      const diffPercent = guideCost ? Math.round(((item.cost - guideCost) / guideCost) * 100) : 0;
+                      const diffBadge = diffPercent > 0 
+                        ? `<span style="color:#F87171; font-size:11px;">(+${diffPercent}%)</span>` 
+                        : diffPercent < 0 
+                        ? `<span style="color:#34D399; font-size:11px;">(${diffPercent}%)</span>` 
+                        : `<span style="color:#94A3B8; font-size:11px;">(평균)</span>`;
 
-              <div style="background:#0F172A; padding:12px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                <div style="font-size:11px; color:#94A3B8;">추정 농가소득</div>
-                <div style="font-size:16px; font-weight:800; color:#34D399; margin-top:2px;">${formatMoney(calculatedIncome)}</div>
-              </div>
-
-              <div style="background:#0F172A; padding:12px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                <div style="font-size:11px; color:#94A3B8;">KAMIS 5개년 평균 유통시세</div>
-                <div style="font-size:15px; font-weight:800; color:#FBBF24; margin-top:2px;">kg당 ${formatMoney(baseCropModel.pricePerKg || 2500)}</div>
+                      return `
+                        <tr>
+                          <td style="font-weight:600; color:#E2E8F0;">${item.name}</td>
+                          <td>
+                            <input type="number" class="v-cost-var-input" data-idx="${idx}" value="${item.cost}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700;" />
+                          </td>
+                          <td style="text-align:right; color:#94A3B8;">
+                            ${formatShortMoney(guideCost)} ${diffBadge}
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
               </div>
             </div>
+
+            <!-- 고정비 (Fixed Costs) -->
+            <div style="background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.25); border-radius:12px; padding:18px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid rgba(59,130,246,0.2); padding-bottom:10px;">
+                <h3 style="font-size:15px; font-weight:800; color:#3B82F6; display:flex; align-items:center; gap:6px;">
+                  🏢 고정비 (Fixed Costs)
+                </h3>
+                <span style="font-size:13px; font-weight:700; color:#60A5FA;">소계: ${formatMoney(totalFixedExpenses)}</span>
+              </div>
+
+              <div class="data-table-container">
+                <table class="data-table" style="font-size:13px;">
+                  <thead>
+                    <tr>
+                      <th>세부 비목명</th>
+                      <th>농가 입력 예산(원)</th>
+                      <th style="color:#60A5FA; text-align:right;">농진청 지역 평균 가이드</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${costItemsState.fixed.map((item, idx) => {
+                      const guideCost = rdaScaledCosts[item.key] || item.cost;
+                      const diffPercent = guideCost ? Math.round(((item.cost - guideCost) / guideCost) * 100) : 0;
+                      const diffBadge = diffPercent > 0 
+                        ? `<span style="color:#F87171; font-size:11px;">(+${diffPercent}%)</span>` 
+                        : diffPercent < 0 
+                        ? `<span style="color:#34D399; font-size:11px;">(${diffPercent}%)</span>` 
+                        : `<span style="color:#94A3B8; font-size:11px;">(평균)</span>`;
+
+                      return `
+                        <tr>
+                          <td style="font-weight:600; color:#E2E8F0;">${item.name}</td>
+                          <td>
+                            <input type="number" class="v-cost-fix-input" data-idx="${idx}" value="${item.cost}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700;" />
+                          </td>
+                          <td style="text-align:right; color:#94A3B8;">
+                            ${formatShortMoney(guideCost)} ${diffBadge}
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <!-- 2. 농장 보유 자산 목록 (거래처 제거 반영) -->
+        <!-- 3. 농장 보유 자산 목록 -->
         <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #FFF; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
             <div>
               <h2 style="font-size: 17px; font-weight: 800; color: #3B82F6; display: flex; align-items: center; gap: 8px;">
-                🏗️ 2. 농장 보유 자산 현황 (총 자산가액: <span style="color:#10B981;">${formatMoney(totalAssetsCost)}</span>)
+                🏗️ 3. 농장 보유 주요 자산 현황 (총 자산가액: <span style="color:#10B981;">${formatMoney(totalAssetsCost)}</span>)
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">시설공사, 기계장치, 건물 등 보유 자산을 등록하여 연간 감가상각비를 산출합니다.</p>
             </div>
@@ -200,12 +316,12 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           </div>
         </div>
 
-        <!-- 3. 농가 대출 & 부채 현황 -->
+        <!-- 4. 농가 대출 & 부채 현황 -->
         <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #FFF; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
             <div>
               <h2 style="font-size: 17px; font-weight: 800; color: #EF4444; display: flex; align-items: center; gap: 8px;">
-                💳 3. 농가 대출 및 부채 현황 (총 부채액: <span style="color:#EF4444;">${formatMoney(totalLoansAmount)}</span>)
+                💳 4. 농가 대출 및 부채 현황 (총 부채액: <span style="color:#EF4444;">${formatMoney(totalLoansAmount)}</span>)
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">청창농 자금, 신용보증, 시설자금 대출 현황을 등록하여 연말 상환 스케줄을 산출합니다.</p>
             </div>
@@ -275,6 +391,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
     document.getElementById('ex-crop-name').addEventListener('change', (e) => {
       farmState.cropName = e.target.value;
+      costItemsState = null; // reset to sync new crop defaults
       renderForm();
     });
 
@@ -298,6 +415,23 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     document.getElementById('ex-cycles').addEventListener('change', (e) => {
       farmState.cycles = Number(e.target.value) || 1;
       renderForm();
+    });
+
+    // Cost Items input handlers
+    document.querySelectorAll('.v-cost-var-input').forEach(inp => {
+      inp.addEventListener('change', (e) => {
+        const idx = Number(e.target.getAttribute('data-idx'));
+        costItemsState.variable[idx].cost = Number(e.target.value) || 0;
+        renderForm();
+      });
+    });
+
+    document.querySelectorAll('.v-cost-fix-input').forEach(inp => {
+      inp.addEventListener('change', (e) => {
+        const idx = Number(e.target.getAttribute('data-idx'));
+        costItemsState.fixed[idx].cost = Number(e.target.value) || 0;
+        renderForm();
+      });
     });
 
     // Asset handlers
@@ -347,6 +481,11 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
     // Submit handler
     document.getElementById('intake-submit-btn').addEventListener('click', () => {
+      const combinedCostBreakdown = [
+        ...costItemsState.variable.map(i => ({ name: i.name, cost: i.cost, percent: calculatedExpenses > 0 ? Number(((i.cost / calculatedExpenses) * 100).toFixed(1)) : 0 })),
+        ...costItemsState.fixed.map(i => ({ name: i.name, cost: i.cost, percent: calculatedExpenses > 0 ? Number(((i.cost / calculatedExpenses) * 100).toFixed(1)) : 0 }))
+      ];
+
       const finalModel = {
         category: farmState.category,
         cropName: farmState.cropName,
@@ -361,7 +500,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         netProfit: Math.round(calculatedIncome * 0.8),
         yieldKg: Math.round((baseCropModel.yieldKg || 100000) * totalScaleFactor),
         pricePerKg: baseCropModel.pricePerKg || 2500,
-        costBreakdown: scaledCostBreakdown,
+        costBreakdown: combinedCostBreakdown,
+        costItemsState: costItemsState,
         benchmark: baseCropModel.benchmark,
         kamisData: baseCropModel.kamisData
       };
