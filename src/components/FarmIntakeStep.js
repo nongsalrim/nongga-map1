@@ -161,33 +161,40 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       return sum + Math.round(amount * rate);
     }, 0);
 
-    const rdaScaledCosts = (baseCropModel.costBreakdown || []).reduce((acc, item) => {
-      acc[item.name] = Math.round(item.cost * totalScaleFactor);
-      return acc;
-    }, {});
+    const cb = baseCropModel.costBreakdown || [];
+    const totalBaseExpenses = (baseCropModel.operatingExpenses || 50000000) * totalScaleFactor;
+
+    function findScaledCost(targetKeys, defaultPct) {
+      for (const item of cb) {
+        if (targetKeys.some(k => item.name.includes(k))) {
+          return Math.round(item.cost * totalScaleFactor);
+        }
+      }
+      return Math.round(totalBaseExpenses * defaultPct);
+    }
 
     costItemsState = {
       _cropName: farmState.cropName,
       _scale: totalScaleFactor,
       variable: [
-        { name: '종자/종묘비', key: '종자/종묘비', cost: rdaScaledCosts['종자/종묘비'] || Math.round(12500000 * totalScaleFactor) },
-        { name: '보통비료비', key: '보통비료비', cost: rdaScaledCosts['보통비료비'] || Math.round(8300000 * totalScaleFactor) },
-        { name: '부산물비료비', key: '부산물비료비', cost: rdaScaledCosts['부산물비료비'] || Math.round(7300000 * totalScaleFactor) },
-        { name: '농약비', key: '농약비', cost: rdaScaledCosts['농약비'] || Math.round(5200000 * totalScaleFactor) },
-        { name: '광열비/동력비', key: '기타비용 및 광열비', cost: rdaScaledCosts['기타비용 및 광열비'] || Math.round(10400000 * totalScaleFactor) },
-        { name: '고용인건비', key: '고용인건비', cost: Math.round(15000000 * totalScaleFactor) },
-        { name: '기타재료비', key: '기타재료비', cost: rdaScaledCosts['기타재료비'] || Math.round(33000000 * totalScaleFactor) },
+        { name: '종자/종묘비', key: '종자/종묘비', cost: findScaledCost(['종자', '종묘', '입목'], 0.10) },
+        { name: '보통비료비', key: '보통비료비', cost: findScaledCost(['보통비료'], 0.08) },
+        { name: '부산물비료비', key: '부산물비료비', cost: findScaledCost(['부산물비료', '퇴비'], 0.07) },
+        { name: '농약/방제비', key: '농약비', cost: findScaledCost(['농약', '방제'], 0.08) },
+        { name: '광열비/동력비', key: '기타비용 및 광열비', cost: findScaledCost(['광열비', '동력비', '기타비용'], 0.08) },
+        { name: '고용인건비', key: '고용인건비', cost: findScaledCost(['인건비'], 0.10) },
+        { name: '기타재료비', key: '기타재료비', cost: findScaledCost(['재료비'], 0.15) },
         { name: '대출이자 (순수 금융비용)', key: '대출이자', cost: year1InterestTotal, isAutoSynced: true }
       ],
       fixed: [
-        { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: totalAssetsDepreciation > 0 ? totalAssetsDepreciation : (rdaScaledCosts['대농구/시설상각비'] || Math.round(15600000 * totalScaleFactor)), isAutoSynced: totalAssetsDepreciation > 0 },
-        { name: '자동차/운반비', key: '자동차비', cost: rdaScaledCosts['자동차비'] || Math.round(11400000 * totalScaleFactor) },
-        { name: '수리 및 유지관리비', key: '수리비', cost: Math.round(4500000 * totalScaleFactor) },
-        { name: '임차료/기타 고정비', key: '기타고정비', cost: Math.round(6800000 * totalScaleFactor) }
+        { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: totalAssetsDepreciation > 0 ? totalAssetsDepreciation : findScaledCost(['상각비'], 0.12), isAutoSynced: totalAssetsDepreciation > 0 },
+        { name: '자동차/운반비', key: '자동차비', cost: findScaledCost(['자동차', '운반', '차량'], 0.10) },
+        { name: '수리 및 유지관리비', key: '수리비', cost: findScaledCost(['수리'], 0.05) },
+        { name: '임차료/기타 고정비', key: '기타고정비', cost: findScaledCost(['기타고정비', '임차료'], 0.07) }
       ]
     };
 
-    toastMsg = `✅ [농진청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 / ${farmState.cycles}기작) 평균 예산 및 대출이자(${formatMoney(year1InterestTotal)}) 자동 연동 완료!`;
+    toastMsg = `✅ [농진청/산림청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 기준) 경영비 예산 연동 완료!`;
   }
 
   function renderForm() {
