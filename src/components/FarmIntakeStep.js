@@ -3,7 +3,7 @@
  * @description Step 1: 메인 농가 경영체 정밀 데이터 입력 센터 (컨설팅 전용 메인 진입 폼)
  */
 
-import { CROP_PRESETS } from '../utils/excelEngine.js';
+import { CROP_PRESETS } from '../../utils/excelEngine.js';
 
 export function renderFarmIntakeStep(container, currentModel, currentAssets, currentLoans, onSubmit, onSelectCrop) {
   let modelState = JSON.parse(JSON.stringify(currentModel));
@@ -98,20 +98,18 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                     <th>자산 / 시설 목록명</th>
                     <th>구입가(원)</th>
                     <th>내용년수(년)</th>
-                    <th>거래처</th>
                     <th>삭제</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${assetsState.length === 0 ? `
-                    <tr><td colspan="6" style="text-align:center; color:#94A3B8; padding:20px;">등록된 자산이 없습니다. [+ 새 자산 항목 추가] 버튼을 눌러 추가하세요.</td></tr>
+                    <tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:20px;">등록된 자산이 없습니다. [+ 새 자산 항목 추가] 버튼을 눌러 추가하세요.</td></tr>
                   ` : assetsState.map((asset, idx) => `
                     <tr>
                       <td>${idx + 1}</td>
                       <td><input type="text" class="i-asset-name" data-idx="${idx}" value="${asset.목록 || asset.name || ''}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%;" /></td>
                       <td><input type="number" class="i-asset-price" data-idx="${idx}" value="${asset.구입가 || 0}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%;" /></td>
                       <td><input type="number" class="i-asset-years" data-idx="${idx}" value="${asset.내용년수 || 10}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:70px;" /></td>
-                      <td><input type="text" class="i-asset-vendor" data-idx="${idx}" value="${asset.거래처 || '자체시설'}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%;" /></td>
                       <td><button class="i-btn-del-asset" data-idx="${idx}" style="background:#EF4444; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">삭제</button></td>
                     </tr>
                   `).join('')}

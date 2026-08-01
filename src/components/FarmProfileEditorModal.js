@@ -103,7 +103,6 @@ export function renderFarmProfileEditorModal(currentModel, currentAssets, curren
                     <th>자산/시설 목록명</th>
                     <th>구입가(원)</th>
                     <th>내용년수(년)</th>
-                    <th>거래처</th>
                     <th>작동</th>
                   </tr>
                 </thead>
@@ -114,7 +113,6 @@ export function renderFarmProfileEditorModal(currentModel, currentAssets, curren
                       <td><input type="text" class="asset-inp-name" data-idx="${idx}" value="${asset.목록 || asset.name || ''}" style="background:#1E293B; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px; border-radius:4px; width:100%;" /></td>
                       <td><input type="number" class="asset-inp-price" data-idx="${idx}" value="${asset.구입가 || 0}" style="background:#1E293B; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px; border-radius:4px; width:100%;" /></td>
                       <td><input type="number" class="asset-inp-years" data-idx="${idx}" value="${asset.내용년수 || 10}" style="background:#1E293B; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px; border-radius:4px; width:60px;" /></td>
-                      <td><input type="text" class="asset-inp-vendor" data-idx="${idx}" value="${asset.거래처 || '자체시설'}" style="background:#1E293B; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px; border-radius:4px; width:100%;" /></td>
                       <td><button class="btn-delete-asset" data-idx="${idx}" style="background:#EF4444; color:#FFF; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">삭제</button></td>
                     </tr>
                   `).join('')}

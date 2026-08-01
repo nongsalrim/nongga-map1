@@ -40,12 +40,11 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
                 <th>내용년수</th>
                 <th class="num">구입가(원)</th>
                 <th class="num">연 감가상각비</th>
-                <th class="num">거래처</th>
               </tr>
             </thead>
             <tbody>
               ${assets.length === 0 ? `
-                <tr><td colspan="6" style="text-align:center; color:#94A3B8; padding:20px;">등록된 자산이 없습니다. [자산 정보 편집하기] 버튼을 통해 자산을 추가해 주세요.</td></tr>
+                <tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:20px;">등록된 자산이 없습니다. [자산 정보 편집하기] 버튼을 통해 자산을 추가해 주세요.</td></tr>
               ` : assets.map((asset, idx) => `
                 <tr>
                   <td>${idx + 1}</td>
@@ -53,7 +52,6 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
                   <td>${asset.내용년수 || 10}년</td>
                   <td class="num">${formatMoney(asset.구입가 || 0)}</td>
                   <td class="num" style="color:var(--accent-gold);">${formatMoney(asset.연감가상각비 || Math.round((asset.구입가 || 0) / (asset.내용년수 || 10)))}</td>
-                  <td class="num" style="color:#94A3B8;">${asset.거래처 || '자체시설'}</td>
                 </tr>
               `).join('')}
             </tbody>
