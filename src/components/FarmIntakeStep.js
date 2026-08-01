@@ -1,6 +1,6 @@
 /**
  * @file FarmIntakeStep.js
- * @description 천단위 구분기호(쉼표) & 우측 정렬 적용, 평균가이드 금액 및 % 소수점 첫째자리(1 decimal place) 정밀 표기
+ * @description 천단위 구분기호(쉼표) & 우측 정렬 적용, 5개년 연도별 대출 원금/이자 상환 스케줄 시뮬레이션 탑재
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -46,6 +46,71 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const formattedNum = (Math.round(million * 10) / 10).toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     return `${formattedNum}만 원`;
   };
+
+  // Calculate 5-Year Debt Repayment Schedule across all loans
+  function calc5YearSchedule(loans) {
+    const schedule = [1, 2, 3, 4, 5].map(y => ({ year: y, principal: 0, interest: 0, total: 0, remainingBalance: 0 }));
+
+    loans.forEach(loan => {
+      let balance = parseNum(loan.대출금액) || 0;
+      const rate = loan.이자율 ? (loan.이자율 > 1 ? loan.이자율 / 100 : loan.이자율) : 0.015;
+      const period = parseNum(loan.대출기간) || 10;
+      const grace = parseNum(loan.거치기간) || 0;
+      const type = loan.대출조건 || loan.대출종류 || '원리금균등';
+
+      const repayYears = Math.max(1, period - grace);
+
+      for (let y = 1; y <= 5; y++) {
+        if (balance <= 0) continue;
+
+        let p = 0;
+        let i = Math.round(balance * rate);
+
+        if (y <= grace) {
+          // In grace period: interest only
+          p = 0;
+        } else {
+          // Repayment period
+          if (type === '원금균등') {
+            p = Math.min(balance, Math.round((parseNum(loan.대출금액) || 0) / repayYears));
+          } else if (type === '일시상환') {
+            if (y === period) {
+              p = balance;
+            } else {
+              p = 0;
+            }
+          } else {
+            // 원리금균등 (Equal Payment)
+            const P = balance;
+            const r = rate;
+            const n = Math.max(1, period - y + 1);
+            let pmt = 0;
+            if (r > 0) {
+              pmt = Math.round(P * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1));
+            } else {
+              pmt = Math.round(P / n);
+            }
+            p = Math.min(balance, Math.max(0, pmt - i));
+          }
+        }
+
+        balance = Math.max(0, balance - p);
+
+        schedule[y - 1].principal += p;
+        schedule[y - 1].interest += i;
+        schedule[y - 1].total += (p + i);
+      }
+    });
+
+    let totalInitialBalance = loans.reduce((sum, l) => sum + (parseNum(l.대출금액) || 0), 0);
+    let cumPrincipal = 0;
+    schedule.forEach(s => {
+      cumPrincipal += s.principal;
+      s.remainingBalance = Math.max(0, totalInitialBalance - cumPrincipal);
+    });
+
+    return schedule;
+  }
 
   function applyRdaBenchmarkToInputs() {
     baseCropModel = FULL_CROP_DATABASE[farmState.cropName] || FULL_CROP_DATABASE['시설상추'];
@@ -131,6 +196,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const calculatedIncome = calculatedRevenue - calculatedExpenses;
 
     const totalLoansAmount = loansState.reduce((sum, l) => sum + (parseNum(l.대출금액) || 0), 0);
+    const schedule5Years = calc5YearSchedule(loansState);
 
     const allCrops = Object.keys(FULL_CROP_DATABASE);
     const categories = Array.from(new Set(allCrops.map(k => FULL_CROP_DATABASE[k].category || '기타')));
@@ -148,8 +214,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           <h1 style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 6px;">
             📝 농가 경영체 정밀 데이터 입력 센터
           </h1>
-          <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 850px;">
-            모든 평균 가이드 금액과 비교 비율(%)에 <b>소수점 첫째 자리(1 decimal place)</b> 정밀 표기가 적용됩니다.
+          <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 880px;">
+            농가 대출 및 부채 입력 시 <b>5개년 연도별 대출 원금 및 발생 이자 상환 스케줄</b>이 하단에 실시간으로 시뮬레이션되어 표시됩니다.
           </p>
         </div>
 
@@ -504,6 +570,53 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               </tbody>
             </table>
           </div>
+
+          <!-- 5개년 연도별 대출 상환금 및 이자 시뮬레이션 표 -->
+          <div style="margin-top: 24px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+              <div>
+                <h3 style="font-size:15px; font-weight:800; color:#EF4444; display:flex; align-items:center; gap:6px;">
+                  📅 5개년 연도별 대출 원리금 상환 시뮬레이션 (거치기간 반영)
+                </h3>
+                <p style="font-size:12px; color:#94A3B8; margin-top:2px;">
+                  등록된 ${loansState.length}개 대출의 1년 차 ~ 5년 차 연도별 상환 원금, 이자 및 총 상환 부담액입니다.
+                </p>
+              </div>
+              <span class="badge" style="background:rgba(239,68,68,0.2); color:#FCA5A5; border:1px solid rgba(239,68,68,0.3); font-size:12px; font-weight:700;">
+                1년 차 이자/상환액: ${formatMoney(schedule5Years[0]?.total || 0)}
+              </span>
+            </div>
+
+            <div class="data-table-container">
+              <table class="data-table" style="font-size:13px; text-align:center;">
+                <thead>
+                  <tr style="background: rgba(239, 68, 68, 0.2); color: #FCA5A5;">
+                    <th style="text-align:center; padding:10px;">연도</th>
+                    <th style="text-align:center;">상환 상태</th>
+                    <th style="text-align:right;">상환 원금(원)</th>
+                    <th style="text-align:right; color:#FBBF24;">발생 이자(원)</th>
+                    <th style="text-align:right; color:#EF4444;">연간 총 상환액(원)</th>
+                    <th style="text-align:right;">기말 대출 잔액(원)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${schedule5Years.map(item => `
+                    <tr>
+                      <td style="font-weight:800; color:#FFF;">${item.year}년 차</td>
+                      <td>
+                        ${item.principal === 0 ? `<span style="color:#FBBF24; font-size:11px; background:rgba(251,191,36,0.15); padding:2px 8px; border-radius:4px; font-weight:700;">거치기간 (이자만 납입)</span>` : `<span style="color:#34D399; font-size:11px; background:rgba(52,211,153,0.15); padding:2px 8px; border-radius:4px; font-weight:700;">원리금 상환 진행</span>`}
+                      </td>
+                      <td style="text-align:right; font-family: Pretendard, monospace; font-weight:700;">${formatMoney(item.principal)}</td>
+                      <td style="text-align:right; color:#FBBF24; font-family: Pretendard, monospace; font-weight:700;">${formatMoney(item.interest)}</td>
+                      <td style="text-align:right; color:#EF4444; font-family: Pretendard, monospace; font-weight:800; font-size:14px;">${formatMoney(item.total)}</td>
+                      <td style="text-align:right; color:#94A3B8; font-family: Pretendard, monospace;">${formatMoney(item.remainingBalance)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
 
         <!-- 하단 대형 분석 실행 CTA 버튼 -->
@@ -645,6 +758,15 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       });
     });
 
+    document.querySelectorAll('.i-loan-type').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const idx = Number(e.target.getAttribute('data-idx'));
+        loansState[idx].대출조건 = e.target.value;
+        loansState[idx].대출종류 = e.target.value;
+        renderForm();
+      });
+    });
+
     document.querySelectorAll('.i-loan-name').forEach(inp => {
       inp.addEventListener('change', (e) => { loansState[Number(e.target.getAttribute('data-idx'))].은행명 = e.target.value; });
     });
@@ -657,6 +779,18 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     document.querySelectorAll('.i-loan-rate').forEach(inp => {
       inp.addEventListener('change', (e) => {
         loansState[Number(e.target.getAttribute('data-idx'))].이자율 = parseNum(e.target.value) / 100;
+        renderForm();
+      });
+    });
+    document.querySelectorAll('.i-loan-period').forEach(inp => {
+      inp.addEventListener('change', (e) => {
+        loansState[Number(e.target.getAttribute('data-idx'))].대출기간 = parseNum(e.target.value);
+        renderForm();
+      });
+    });
+    document.querySelectorAll('.i-loan-grace').forEach(inp => {
+      inp.addEventListener('change', (e) => {
+        loansState[Number(e.target.getAttribute('data-idx'))].거치기간 = parseNum(e.target.value);
         renderForm();
       });
     });
@@ -686,6 +820,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         costItemsState: costItemsState,
         totalAssetsCost: totalAssetsCost,
         totalAssetsDepreciation: totalAssetsDepreciation,
+        schedule5Years: schedule5Years,
         benchmark: baseCropModel.benchmark,
         kamisData: baseCropModel.kamisData
       };
