@@ -1,6 +1,6 @@
 /**
  * @file FarmIntakeStep.js
- * @description 엑셀 양식과 100% 동일한 7대 표준 컬럼 + 변동비/고정비 세부 비목 구분 & 농진청 지역 평균 가이드 연동 입력 센터
+ * @description 천단위 구분기호(쉼표) & 우측 정렬 적용, 자산 감가상각비 하단 총액 집계 및 고정비 자동 연동 정밀 입력 센터
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -27,9 +27,17 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
   // Default detailed cost state (Variable & Fixed)
   let costItemsState = currentModel.costItemsState || null;
 
-  const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(val)) + ' 원';
+  // Utility formatters
+  const parseNum = (val) => {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    return Number(String(val).replace(/,/g, '')) || 0;
+  };
+
+  const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val))) + ' 원';
+  const formatComma = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val)));
   const formatShortMoney = (val) => {
-    const million = Math.round(val / 10000);
+    const million = Math.round(parseNum(val) / 10000);
     return new Intl.NumberFormat('ko-KR').format(million) + '만 원';
   };
 
@@ -40,6 +48,14 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const areaScaleFactor = (farmState.areaPyung || 800) / (baseCropModel.areaPyung || 1000);
     const cycleScaleFactor = (farmState.cycles || 1) / (baseCropModel.cycles || 1);
     const totalScaleFactor = areaScaleFactor * cycleScaleFactor;
+
+    // Calculate Total Asset Depreciation from assetsState
+    const totalAssetsCost = assetsState.reduce((sum, a) => sum + (parseNum(a.구입가) || 0), 0);
+    const totalAssetsDepreciation = assetsState.reduce((sum, a) => {
+      const price = parseNum(a.구입가) || 0;
+      const years = parseNum(a.내용년수) || 10;
+      return sum + (years > 0 ? Math.round(price / years) : 0);
+    }, 0);
 
     // RDA Benchmark cost breakdown scaled for current farm size
     const rdaScaledCosts = (baseCropModel.costBreakdown || []).reduce((acc, item) => {
@@ -62,27 +78,33 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           { name: '고용인건비', key: '고용인건비', cost: Math.round(15000000 * totalScaleFactor) },
           { name: '기타재료비', key: '기타재료비', cost: rdaScaledCosts['기타재료비'] || Math.round(33000000 * totalScaleFactor) }
         ],
-        // 고정비 (Fixed Costs)
+        // 고정비 (Fixed Costs) - 시설/대농구 상각비는 자산 감가상각비 총액으로 자동 연동!
         fixed: [
-          { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: rdaScaledCosts['대농구/시설상각비'] || Math.round(15600000 * totalScaleFactor) },
+          { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: totalAssetsDepreciation > 0 ? totalAssetsDepreciation : (rdaScaledCosts['대농구/시설상각비'] || Math.round(15600000 * totalScaleFactor)), isAutoSynced: true },
           { name: '자동차/운반비', key: '자동차비', cost: rdaScaledCosts['자동차비'] || Math.round(11400000 * totalScaleFactor) },
           { name: '수리 및 유지관리비', key: '수리비', cost: Math.round(4500000 * totalScaleFactor) },
           { name: '임차료/기타 고정비', key: '기타고정비', cost: Math.round(6800000 * totalScaleFactor) }
         ]
       };
+    } else {
+      // Auto update 시설/대농구 상각비 with current totalAssetsDepreciation
+      const depItem = costItemsState.fixed.find(i => i.name === '시설/대농구 상각비');
+      if (depItem && totalAssetsDepreciation > 0) {
+        depItem.cost = totalAssetsDepreciation;
+        depItem.isAutoSynced = true;
+      }
     }
 
     const calculatedRevenue = Math.round(baseCropModel.revenue * totalScaleFactor);
     
     // Sum total expenses from costItemsState
-    const totalVariableExpenses = costItemsState.variable.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
-    const totalFixedExpenses = costItemsState.fixed.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+    const totalVariableExpenses = costItemsState.variable.reduce((sum, item) => sum + (parseNum(item.cost) || 0), 0);
+    const totalFixedExpenses = costItemsState.fixed.reduce((sum, item) => sum + (parseNum(item.cost) || 0), 0);
     const calculatedExpenses = totalVariableExpenses + totalFixedExpenses;
 
     const calculatedIncome = calculatedRevenue - calculatedExpenses;
 
-    const totalAssetsCost = assetsState.reduce((sum, a) => sum + (Number(a.구입가) || 0), 0);
-    const totalLoansAmount = loansState.reduce((sum, l) => sum + (Number(l.대출금액) || 0), 0);
+    const totalLoansAmount = loansState.reduce((sum, l) => sum + (parseNum(l.대출금액) || 0), 0);
 
     const allCrops = Object.keys(FULL_CROP_DATABASE);
     const categories = Array.from(new Set(allCrops.map(k => FULL_CROP_DATABASE[k].category || '기타')));
@@ -100,8 +122,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           <h1 style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 6px;">
             📝 농가 경영체 정밀 데이터 입력 센터
           </h1>
-          <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 800px;">
-            컨설팅 표준 엑셀 양식의 <b>[농가명, 지역, 작목분류, 작목명, 면적(㎡), 평, 기작]</b> 및 <b>[변동비/고정비 세부 예산]</b>을 입력하시면 농진청 소득조사표 지역 평균 가이드와 실시간 비교 연동됩니다.
+          <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 820px;">
+            모든 숫자 입력 필드에 <b>천단위 구분기호(쉼표)</b> 및 <b>우측 정렬</b>이 적용되어 있으며, 자산 입력 시 <b>연간 감가상각비 총액이 고정비에 자동 반영</b>됩니다.
           </p>
         </div>
 
@@ -111,7 +133,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             <h2 style="font-size: 17px; font-weight: 800; color: #10B981; display: flex; align-items: center; gap: 8px;">
               📊 1. 농가 경영체 기본 데이터 (엑셀 표준 입력 양식)
             </h2>
-            <span style="font-size: 12px; color: #94A3B8;">* 작목 변경 시 농진청 지역 평균 소득조사표 예산이 자동 업데이트됩니다.</span>
+            <span style="font-size: 12px; color: #94A3B8;">* 숫자를 입력하시면 1,000단위 쉼표가 자동 적용되며 우측 정렬됩니다.</span>
           </div>
 
           <div class="data-table-container">
@@ -149,29 +171,63 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                     </select>
                   </td>
                   <td style="padding:10px;">
-                    <input type="number" id="ex-area-m2" value="${farmState.areaM2}" style="text-align:center; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700;" />
+                    <input type="text" id="ex-area-m2" value="${formatComma(farmState.areaM2)}" style="text-align:right; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700; font-family: Pretendard, monospace;" />
                   </td>
                   <td style="padding:10px;">
-                    <input type="number" id="ex-area-pyung" value="${farmState.areaPyung}" style="text-align:center; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700;" />
+                    <input type="text" id="ex-area-pyung" value="${formatComma(farmState.areaPyung)}" style="text-align:right; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700; font-family: Pretendard, monospace;" />
                   </td>
                   <td style="padding:10px;">
-                    <input type="number" id="ex-cycles" value="${farmState.cycles}" style="text-align:center; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700;" />
+                    <input type="text" id="ex-cycles" value="${formatComma(farmState.cycles)}" style="text-align:right; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700; font-family: Pretendard, monospace;" />
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <!-- 소득조사표 & KAMIS 시세 자동 연동 결과 미리보기 패널 -->
+          <div style="margin-top: 20px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+              <span style="font-size: 14px; font-weight: 800; color: #10B981; display:flex; align-items:center; gap:6px;">
+                ⚡ 소득조사표 & KAMIS 유통정보 자동 산출 결과 미리보기
+              </span>
+              <span style="font-size:12px; color:#94A3B8;">
+                [${farmState.region}] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 / ${farmState.cycles}기작 기준)
+              </span>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+              <div style="background:#0F172A; padding:12px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                <div style="font-size:11px; color:#94A3B8;">추정 총수입 (매출액)</div>
+                <div style="font-size:16px; font-weight:800; color:#38BDF8; margin-top:2px; text-align:right;">${formatMoney(calculatedRevenue)}</div>
+              </div>
+
+              <div style="background:#0F172A; padding:12px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                <div style="font-size:11px; color:#94A3B8;">추정 경영비 (원가합계)</div>
+                <div style="font-size:16px; font-weight:800; color:#F87171; margin-top:2px; text-align:right;">${formatMoney(calculatedExpenses)}</div>
+              </div>
+
+              <div style="background:#0F172A; padding:12px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                <div style="font-size:11px; color:#94A3B8;">추정 농가소득</div>
+                <div style="font-size:16px; font-weight:800; color:#34D399; margin-top:2px; text-align:right;">${formatMoney(calculatedIncome)}</div>
+              </div>
+
+              <div style="background:#0F172A; padding:12px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                <div style="font-size:11px; color:#94A3B8;">KAMIS 5개년 평균 유통시세</div>
+                <div style="font-size:15px; font-weight:800; color:#FBBF24; margin-top:2px; text-align:right;">kg당 ${formatMoney(baseCropModel.pricePerKg || 2500)}</div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- 2. 경영비 세부 비목 입력 (변동비 vs 고정비 구분 & 농진청 지역 평균 가이드) -->
+        <!-- 2. 경영비 세부 비목 입력 (변동비 vs 고정비 구분 & 천단위 쉼표 우측정렬) -->
         <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #FFF; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
           <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap:wrap; gap:10px;">
             <div>
-              <h2 style="font-size: 17px; font-weight: 800; color: #F59E0B; display: flex; align- items: center; gap: 8px;">
+              <h2 style="font-size: 17px; font-weight: 800; color: #F59E0B; display: flex; align-items: center; gap: 8px;">
                 📋 2. 경영비 세부 비목별 예산 입력 (변동비 vs 고정비 구분)
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
-                우측의 <b>[농진청 ${farmState.region}지역 소득조사표 평균 가이드]</b>를 참조하여 농가의 실제 예산을 입력하세요.
+                우측의 <b>[농진청 ${farmState.region}지역 소득조사표 평균 가이드]</b>를 참조하여 예산을 입력하세요. (천단위 쉼표 및 우측 정렬 적용)
               </p>
             </div>
             <div style="text-align:right;">
@@ -197,7 +253,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                   <thead>
                     <tr>
                       <th>세부 비목명</th>
-                      <th>농가 입력 예산(원)</th>
+                      <th style="text-align:right;">농가 입력 예산(원)</th>
                       <th style="color:#10B981; text-align:right;">농진청 지역 평균 가이드</th>
                     </tr>
                   </thead>
@@ -215,7 +271,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                         <tr>
                           <td style="font-weight:600; color:#E2E8F0;">${item.name}</td>
                           <td>
-                            <input type="number" class="v-cost-var-input" data-idx="${idx}" value="${item.cost}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700;" />
+                            <input type="text" class="v-cost-var-input" data-idx="${idx}" value="${formatComma(item.cost)}" style="text-align:right; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
                           </td>
                           <td style="text-align:right; color:#94A3B8;">
                             ${formatShortMoney(guideCost)} ${diffBadge}
@@ -242,7 +298,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                   <thead>
                     <tr>
                       <th>세부 비목명</th>
-                      <th>농가 입력 예산(원)</th>
+                      <th style="text-align:right;">농가 입력 예산(원)</th>
                       <th style="color:#60A5FA; text-align:right;">농진청 지역 평균 가이드</th>
                     </tr>
                   </thead>
@@ -256,11 +312,15 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                         ? `<span style="color:#34D399; font-size:11px;">(${diffPercent}%)</span>` 
                         : `<span style="color:#94A3B8; font-size:11px;">(평균)</span>`;
 
+                      const isSynced = item.isAutoSynced;
+
                       return `
                         <tr>
-                          <td style="font-weight:600; color:#E2E8F0;">${item.name}</td>
+                          <td style="font-weight:600; color:#E2E8F0;">
+                            ${item.name} ${isSynced ? `<span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10B981; padding:2px 6px; border-radius:4px; margin-left:4px;">⚡자산연동</span>` : ''}
+                          </td>
                           <td>
-                            <input type="number" class="v-cost-fix-input" data-idx="${idx}" value="${item.cost}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700;" />
+                            <input type="text" class="v-cost-fix-input" data-idx="${idx}" value="${formatComma(item.cost)}" style="text-align:right; background:#0F172A; border:1px solid ${isSynced ? '#10B981' : 'rgba(255,255,255,0.15)'}; color:${isSynced ? '#10B981' : '#FFF'}; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
                           </td>
                           <td style="text-align:right; color:#94A3B8;">
                             ${formatShortMoney(guideCost)} ${diffBadge}
@@ -276,14 +336,16 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           </div>
         </div>
 
-        <!-- 3. 농장 보유 자산 목록 -->
+        <!-- 3. 농장 보유 자산 목록 (하단 감가상각비 총액 계산 & 고정비 자동 연동!) -->
         <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #FFF; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
             <div>
               <h2 style="font-size: 17px; font-weight: 800; color: #3B82F6; display: flex; align-items: center; gap: 8px;">
-                🏗️ 3. 농장 보유 주요 자산 현황 (총 자산가액: <span style="color:#10B981;">${formatMoney(totalAssetsCost)}</span>)
+                🏗️ 3. 농장 보유 자산 현황 & 연간 감가상각비 계산
               </h2>
-              <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">시설공사, 기계장치, 건물 등 보유 자산을 등록하여 연간 감가상각비를 산출합니다.</p>
+              <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
+                자산 구입가와 내용년수를 입력하시면 <b>연간 감가상각비 총액이 하단에 산출</b>되어 위 <b>[고정비 ➔ 시설/대농구 상각비]</b>에 자동 연동됩니다.
+              </p>
             </div>
             <button id="intake-add-asset-btn" class="btn-upload" style="background: #3B82F6; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;">+ 새 자산 항목 추가</button>
           </div>
@@ -294,25 +356,54 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 <tr>
                   <th>연번</th>
                   <th>자산 / 시설 목록명</th>
-                  <th>구입가(원)</th>
-                  <th>내용년수(년)</th>
-                  <th>삭제</th>
+                  <th style="text-align:right;">구입가(원)</th>
+                  <th style="text-align:right;">내용년수(년)</th>
+                  <th style="text-align:right; color:#F59E0B;">연 감가상각비(원)</th>
+                  <th style="text-align:center;">삭제</th>
                 </tr>
               </thead>
               <tbody>
                 ${assetsState.length === 0 ? `
-                  <tr><td colspan="5" style="text-align:center; color:#94A3B8; padding:20px;">등록된 자산이 없습니다. [+ 새 자산 항목 추가] 버튼을 눌러 추가하세요.</td></tr>
-                ` : assetsState.map((asset, idx) => `
-                  <tr>
-                    <td>${idx + 1}</td>
-                    <td><input type="text" class="i-asset-name" data-idx="${idx}" value="${asset.목록 || asset.name || ''}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%;" /></td>
-                    <td><input type="number" class="i-asset-price" data-idx="${idx}" value="${asset.구입가 || 0}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%;" /></td>
-                    <td><input type="number" class="i-asset-years" data-idx="${idx}" value="${asset.내용년수 || 10}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:80px;" /></td>
-                    <td><button class="i-btn-del-asset" data-idx="${idx}" style="background:#EF4444; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">삭제</button></td>
-                  </tr>
-                `).join('')}
+                  <tr><td colspan="6" style="text-align:center; color:#94A3B8; padding:20px;">등록된 자산이 없습니다. [+ 새 자산 항목 추가] 버튼을 눌러 추가하세요.</td></tr>
+                ` : assetsState.map((asset, idx) => {
+                  const price = parseNum(asset.구입가) || 0;
+                  const years = parseNum(asset.내용년수) || 10;
+                  const annualDep = years > 0 ? Math.round(price / years) : 0;
+
+                  return `
+                    <tr>
+                      <td>${idx + 1}</td>
+                      <td><input type="text" class="i-asset-name" data-idx="${idx}" value="${asset.목록 || asset.name || ''}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%;" /></td>
+                      <td><input type="text" class="i-asset-price" data-idx="${idx}" value="${formatComma(price)}" style="text-align:right; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%; font-weight:700; font-family: Pretendard, monospace;" /></td>
+                      <td><input type="text" class="i-asset-years" data-idx="${idx}" value="${formatComma(years)}" style="text-align:right; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:80px; font-weight:700; font-family: Pretendard, monospace;" /></td>
+                      <td style="text-align:right; color:#F59E0B; font-weight:800; font-family: Pretendard, monospace;">${formatMoney(annualDep)}</td>
+                      <td style="text-align:center;"><button class="i-btn-del-asset" data-idx="${idx}" style="background:#EF4444; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">삭제</button></td>
+                    </tr>
+                  `;
+                }).join('')}
               </tbody>
+              <!-- 자산 하단 감가상각비 총액 계산 풋터 -->
+              <tfoot style="background: rgba(59, 130, 246, 0.15); font-weight: 800;">
+                <tr>
+                  <td colspan="2" style="text-align:left; color:#93C5FD; padding:14px 16px;">
+                    🏛️ 자산 집계 합계
+                  </td>
+                  <td style="text-align:right; color:#38BDF8; font-size:15px;">
+                    총 자산가액: ${formatMoney(totalAssetsCost)}
+                  </td>
+                  <td></td>
+                  <td style="text-align:right; color:#F59E0B; font-size:15px; border-left:1px solid rgba(255,255,255,0.1);">
+                    ⚡ 연간 감가상각비 총액: ${formatMoney(totalAssetsDepreciation)}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
             </table>
+          </div>
+
+          <!-- 연동 안내 카드 -->
+          <div style="margin-top:14px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:10px 16px; font-size:12px; color:#93C5FD; display:flex; align-items:center; justify-content:space-between;">
+            <span>💡 <b>상각비 자동 연동 안내</b>: 위 연간 감가상각비 총액 <b>${formatMoney(totalAssetsDepreciation)}</b>이 [2. 고정비 ➔ 시설/대농구 상각비] 항목에 실시간 연동 적용 중입니다.</span>
           </div>
         </div>
 
@@ -334,33 +425,40 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 <tr>
                   <th>상환 방식</th>
                   <th>은행 / 대출 사업명</th>
-                  <th>대출금액(원)</th>
-                  <th>금리(%)</th>
-                  <th>상환기간(년)</th>
-                  <th>거치기간(년)</th>
-                  <th>삭제</th>
+                  <th style="text-align:right;">대출금액(원)</th>
+                  <th style="text-align:right;">금리(%)</th>
+                  <th style="text-align:right;">상환기간(년)</th>
+                  <th style="text-align:right;">거치기간(년)</th>
+                  <th style="text-align:center;">삭제</th>
                 </tr>
               </thead>
               <tbody>
                 ${loansState.length === 0 ? `
                   <tr><td colspan="7" style="text-align:center; color:#94A3B8; padding:20px;">등록된 대출이 없습니다. [+ 새 대출 항목 추가] 버튼을 눌러 추가하세요.</td></tr>
-                ` : loansState.map((loan, idx) => `
-                  <tr>
-                    <td>
-                      <select class="i-loan-type" data-idx="${idx}" style="background:#0F172A; color:#FFF; border:1px solid rgba(255,255,255,0.15); padding:8px; border-radius:6px;">
-                        <option value="원리금균등" ${(loan.대출조건 || loan.대출종류) === '원리금균등' ? 'selected' : ''}>원리금균등</option>
-                        <option value="원금균등" ${(loan.대출조건 || loan.대출종류) === '원금균등' ? 'selected' : ''}>원금균등</option>
-                        <option value="일시상환" ${(loan.대출조건 || loan.대출종류) === '일시상환' ? 'selected' : ''}>일시상환</option>
-                      </select>
-                    </td>
-                    <td><input type="text" class="i-loan-name" data-idx="${idx}" value="${loan.은행명 || loan.name || ''}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%;" /></td>
-                    <td><input type="number" class="i-loan-amount" data-idx="${idx}" value="${loan.대출금액 || 0}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%;" /></td>
-                    <td><input type="number" step="0.1" class="i-loan-rate" data-idx="${idx}" value="${loan.이자율 ? (loan.이자율 > 1 ? loan.이자율 : loan.이자율 * 100) : 1.5}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:70px;" />%</td>
-                    <td><input type="number" class="i-loan-period" data-idx="${idx}" value="${loan.대출기간 || 10}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:60px;" />년</td>
-                    <td><input type="number" class="i-loan-grace" data-idx="${idx}" value="${loan.거치기간 || 0}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:60px;" />년</td>
-                    <td><button class="i-btn-del-loan" data-idx="${idx}" style="background:#EF4444; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">삭제</button></td>
-                  </tr>
-                `).join('')}
+                ` : loansState.map((loan, idx) => {
+                  const amount = parseNum(loan.대출금액) || 0;
+                  const rate = loan.이자율 ? (loan.이자율 > 1 ? loan.이자율 : loan.이자율 * 100) : 1.5;
+                  const period = parseNum(loan.대출기간) || 10;
+                  const grace = parseNum(loan.거치기간) || 0;
+
+                  return `
+                    <tr>
+                      <td>
+                        <select class="i-loan-type" data-idx="${idx}" style="background:#0F172A; color:#FFF; border:1px solid rgba(255,255,255,0.15); padding:8px; border-radius:6px;">
+                          <option value="원리금균등" ${(loan.대출조건 || loan.대출종류) === '원리금균등' ? 'selected' : ''}>원리금균등</option>
+                          <option value="원금균등" ${(loan.대출조건 || loan.대출종류) === '원금균등' ? 'selected' : ''}>원금균등</option>
+                          <option value="일시상환" ${(loan.대출조건 || loan.대출종류) === '일시상환' ? 'selected' : ''}>일시상환</option>
+                        </select>
+                      </td>
+                      <td><input type="text" class="i-loan-name" data-idx="${idx}" value="${loan.은행명 || loan.name || ''}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%;" /></td>
+                      <td><input type="text" class="i-loan-amount" data-idx="${idx}" value="${formatComma(amount)}" style="text-align:right; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:100%; font-weight:700; font-family: Pretendard, monospace;" /></td>
+                      <td><input type="number" step="0.1" class="i-loan-rate" data-idx="${idx}" value="${rate}" style="text-align:right; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:70px; font-weight:700; font-family: Pretendard, monospace;" />%</td>
+                      <td><input type="text" class="i-loan-period" data-idx="${idx}" value="${formatComma(period)}" style="text-align:right; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:60px; font-weight:700; font-family: Pretendard, monospace;" />년</td>
+                      <td><input type="text" class="i-loan-grace" data-idx="${idx}" value="${formatComma(grace)}" style="text-align:right; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:8px; border-radius:6px; width:60px; font-weight:700; font-family: Pretendard, monospace;" />년</td>
+                      <td style="text-align:center;"><button class="i-btn-del-loan" data-idx="${idx}" style="background:#EF4444; color:#FFF; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">삭제</button></td>
+                    </tr>
+                  `;
+                }).join('')}
               </tbody>
             </table>
           </div>
@@ -397,23 +495,23 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
     // Auto sync ㎡ and 평
     document.getElementById('ex-area-m2').addEventListener('input', (e) => {
-      const m2 = Number(e.target.value) || 0;
+      const m2 = parseNum(e.target.value);
       farmState.areaM2 = m2;
       farmState.areaPyung = Math.round(m2 / 3.305785);
       const pyungEl = document.getElementById('ex-area-pyung');
-      if (pyungEl) pyungEl.value = farmState.areaPyung;
+      if (pyungEl) pyungEl.value = formatComma(farmState.areaPyung);
     });
 
     document.getElementById('ex-area-pyung').addEventListener('input', (e) => {
-      const pyung = Number(e.target.value) || 0;
+      const pyung = parseNum(e.target.value);
       farmState.areaPyung = pyung;
       farmState.areaM2 = Math.round(pyung * 3.305785);
       const m2El = document.getElementById('ex-area-m2');
-      if (m2El) m2El.value = farmState.areaM2;
+      if (m2El) m2El.value = formatComma(farmState.areaM2);
     });
 
     document.getElementById('ex-cycles').addEventListener('change', (e) => {
-      farmState.cycles = Number(e.target.value) || 1;
+      farmState.cycles = parseNum(e.target.value) || 1;
       renderForm();
     });
 
@@ -421,7 +519,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     document.querySelectorAll('.v-cost-var-input').forEach(inp => {
       inp.addEventListener('change', (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
-        costItemsState.variable[idx].cost = Number(e.target.value) || 0;
+        costItemsState.variable[idx].cost = parseNum(e.target.value);
         renderForm();
       });
     });
@@ -429,7 +527,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     document.querySelectorAll('.v-cost-fix-input').forEach(inp => {
       inp.addEventListener('change', (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
-        costItemsState.fixed[idx].cost = Number(e.target.value) || 0;
+        costItemsState.fixed[idx].cost = parseNum(e.target.value);
+        costItemsState.fixed[idx].isAutoSynced = false;
         renderForm();
       });
     });
@@ -452,10 +551,16 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       inp.addEventListener('change', (e) => { assetsState[Number(e.target.getAttribute('data-idx'))].목록 = e.target.value; });
     });
     document.querySelectorAll('.i-asset-price').forEach(inp => {
-      inp.addEventListener('change', (e) => { assetsState[Number(e.target.getAttribute('data-idx'))].구입가 = Number(e.target.value); });
+      inp.addEventListener('change', (e) => {
+        assetsState[Number(e.target.getAttribute('data-idx'))].구입가 = parseNum(e.target.value);
+        renderForm();
+      });
     });
     document.querySelectorAll('.i-asset-years').forEach(inp => {
-      inp.addEventListener('change', (e) => { assetsState[Number(e.target.getAttribute('data-idx'))].내용년수 = Number(e.target.value); });
+      inp.addEventListener('change', (e) => {
+        assetsState[Number(e.target.getAttribute('data-idx'))].내용년수 = parseNum(e.target.value);
+        renderForm();
+      });
     });
 
     // Loan handlers
@@ -476,14 +581,23 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       inp.addEventListener('change', (e) => { loansState[Number(e.target.getAttribute('data-idx'))].은행명 = e.target.value; });
     });
     document.querySelectorAll('.i-loan-amount').forEach(inp => {
-      inp.addEventListener('change', (e) => { loansState[Number(e.target.getAttribute('data-idx'))].대출금액 = Number(e.target.value); });
+      inp.addEventListener('change', (e) => {
+        loansState[Number(e.target.getAttribute('data-idx'))].대출금액 = parseNum(e.target.value);
+        renderForm();
+      });
+    });
+    document.querySelectorAll('.i-loan-rate').forEach(inp => {
+      inp.addEventListener('change', (e) => {
+        loansState[Number(e.target.getAttribute('data-idx'))].이자율 = parseNum(e.target.value) / 100;
+        renderForm();
+      });
     });
 
     // Submit handler
     document.getElementById('intake-submit-btn').addEventListener('click', () => {
       const combinedCostBreakdown = [
-        ...costItemsState.variable.map(i => ({ name: i.name, cost: i.cost, percent: calculatedExpenses > 0 ? Number(((i.cost / calculatedExpenses) * 100).toFixed(1)) : 0 })),
-        ...costItemsState.fixed.map(i => ({ name: i.name, cost: i.cost, percent: calculatedExpenses > 0 ? Number(((i.cost / calculatedExpenses) * 100).toFixed(1)) : 0 }))
+        ...costItemsState.variable.map(i => ({ name: i.name, cost: parseNum(i.cost), percent: calculatedExpenses > 0 ? Number(((parseNum(i.cost) / calculatedExpenses) * 100).toFixed(1)) : 0 })),
+        ...costItemsState.fixed.map(i => ({ name: i.name, cost: parseNum(i.cost), percent: calculatedExpenses > 0 ? Number(((parseNum(i.cost) / calculatedExpenses) * 100).toFixed(1)) : 0 }))
       ];
 
       const finalModel = {
@@ -502,6 +616,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         pricePerKg: baseCropModel.pricePerKg || 2500,
         costBreakdown: combinedCostBreakdown,
         costItemsState: costItemsState,
+        totalAssetsCost: totalAssetsCost,
+        totalAssetsDepreciation: totalAssetsDepreciation,
         benchmark: baseCropModel.benchmark,
         kamisData: baseCropModel.kamisData
       };
