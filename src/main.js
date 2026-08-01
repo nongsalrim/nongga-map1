@@ -1,4 +1,5 @@
 import { renderHeader } from './components/Header.js';
+import { renderFarmIntakeStep } from './components/FarmIntakeStep.js';
 import { renderKpiCards } from './components/KpiSummaryCards.js';
 import { renderIncomeSurvey } from './components/IncomeSurveyView.js';
 import { renderBenchmark } from './components/BenchmarkView.js';
@@ -6,13 +7,17 @@ import { renderFinancialSchedule } from './components/FinancialScheduleView.js';
 import { renderSimulation } from './components/SimulationView.js';
 import { renderKamisDistribution } from './components/KamisDistributionView.js';
 import { renderPdfReportModal } from './components/PdfReportModal.js';
-import { CROP_PRESETS, parseExcelFile } from './utils/excelEngine.js';
+import { renderFarmProfileEditorModal } from './components/FarmProfileEditorModal.js';
+import { CROP_PRESETS, SAMPLE_ASSETS, SAMPLE_LOANS, parseExcelFile } from './utils/excelEngine.js';
 
 class App {
   constructor() {
+    this.viewStep = 'input'; // 'input' (Step 1 메인 데이터 입력 센터) | 'result' (Step 2 진단 결과 보고서)
     this.selectedCrop = '시설수박';
     this.activeTab = 'survey'; // 'survey', 'kamis', 'benchmark', 'schedule', 'simulation'
     this.customExcelData = null;
+    this.customAssets = JSON.parse(JSON.stringify(SAMPLE_ASSETS));
+    this.customLoans = JSON.parse(JSON.stringify(SAMPLE_LOANS));
     this.init();
   }
 
@@ -33,7 +38,6 @@ class App {
       const parsed = await parseExcelFile(file);
       console.log('Parsed Excel File:', parsed);
       
-      // Auto build custom model from parsed excel
       this.customExcelData = {
         fileName: file.name,
         model: {
@@ -55,6 +59,7 @@ class App {
         }
       };
       
+      this.viewStep = 'result';
       this.render();
     } catch (err) {
       console.error('File parse error:', err);
@@ -70,18 +75,71 @@ class App {
     const appEl = document.getElementById('app');
     const model = this.getCurrentModel();
 
+    // Step 1: 메인 데이터 입력 센터 (최우선 메인 화면!)
+    if (this.viewStep === 'input') {
+      appEl.innerHTML = `
+        <div id="header-root"></div>
+        <main class="app-container" style="padding-top: 20px;">
+          <div id="farm-intake-step-root"></div>
+        </main>
+      `;
+
+      renderHeader(document.getElementById('header-root'), {
+        selectedCrop: this.selectedCrop,
+        crops: Object.keys(CROP_PRESETS),
+        onCropChange: (crop) => {
+          this.selectedCrop = crop;
+          this.customExcelData = null;
+          this.render();
+        },
+        onFileUpload: (file) => this.handleFileUpload(file)
+      });
+
+      renderFarmIntakeStep(
+        document.getElementById('farm-intake-step-root'),
+        model,
+        this.customAssets,
+        this.customLoans,
+        (newModel, newAssets, newLoans) => {
+          this.customExcelData = { fileName: '직접입력', model: newModel };
+          this.customAssets = newAssets;
+          this.customLoans = newLoans;
+          this.viewStep = 'result'; // Move to Step 2!
+          this.render();
+        },
+        (cropName) => {
+          this.selectedCrop = cropName;
+          this.customExcelData = null;
+          this.render();
+        }
+      );
+      return;
+    }
+
+    // Step 2: 컨설팅 종합 진단 결과 대시보드 (스크린샷 결과 화면)
     appEl.innerHTML = `
       <div id="header-root"></div>
       
       <main class="app-container">
+        <!-- Step 1 이동 안내 바 -->
+        <div style="background: linear-gradient(135deg, #0F172A, #1E293B); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 24px; margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div>
+            <span class="badge" style="background:rgba(16,185,129,0.2); color:#10B981; border:1px solid rgba(16,185,129,0.3); margin-right:10px;">STEP 2 RESULT</span>
+            <span style="color:#FFF; font-weight:700; font-size:14px;">농가 맞춤 진단서: <b style="color:#10B981;">${model.cropName}</b> (${model.areaPyung || 1000}평)</span>
+          </div>
+          <button id="btn-back-to-input" class="btn-upload" style="background:linear-gradient(135deg, #3B82F6, #1D4ED8); border:none; padding:8px 16px; border-radius:8px; font-weight:700; font-size:13px;">
+            ✏️ 농가 데이터 재입력 / 수정하기
+          </button>
+        </div>
+
         <div id="kpi-root"></div>
 
         <nav class="nav-tabs">
-          <button class="nav-tab ${this.activeTab === 'survey' ? 'active' : ''}" data-tab="survey">📋 소득조사 & 원가분석</button>
-          <button class="nav-tab ${this.activeTab === 'kamis' ? 'active' : ''}" data-tab="kamis">🚚 KAMIS 유통시세 & 진단</button>
-          <button class="nav-tab ${this.activeTab === 'benchmark' ? 'active' : ''}" data-tab="benchmark">🏆 상·하위 20% 벤치마킹</button>
-          <button class="nav-tab ${this.activeTab === 'schedule' ? 'active' : ''}" data-tab="schedule">🏛️ 자산 & 대출 스케줄</button>
-          <button class="nav-tab ${this.activeTab === 'simulation' ? 'active' : ''}" data-tab="simulation">⚡ 6개년 시뮬레이터</button>
+          <button class="nav-tab ${this.activeTab === 'survey' ? 'active' : ''}" data-tab="survey">📋 1. 소득조사 & 원가분석</button>
+          <button class="nav-tab ${this.activeTab === 'kamis' ? 'active' : ''}" data-tab="kamis">🚚 2. KAMIS 유통시세 & 진단</button>
+          <button class="nav-tab ${this.activeTab === 'benchmark' ? 'active' : ''}" data-tab="benchmark">🏆 3. 상·하위 20% 벤치마킹</button>
+          <button class="nav-tab ${this.activeTab === 'schedule' ? 'active' : ''}" data-tab="schedule">🏛️ 4. 자산 & 대출 스케줄</button>
+          <button class="nav-tab ${this.activeTab === 'simulation' ? 'active' : ''}" data-tab="simulation">⚡ 5. 6개년 시뮬레이터</button>
         </nav>
 
         <div id="tab-content-root"></div>
@@ -100,6 +158,14 @@ class App {
       onFileUpload: (file) => this.handleFileUpload(file)
     });
 
+    const backBtn = document.getElementById('btn-back-to-input');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        this.viewStep = 'input';
+        this.render();
+      });
+    }
+
     // Render KPIs
     renderKpiCards(document.getElementById('kpi-root'), model);
 
@@ -110,6 +176,15 @@ class App {
         this.render();
       });
     });
+
+    const openEditorHandler = () => {
+      renderFarmProfileEditorModal(model, this.customAssets, this.customLoans, (newModel, newAssets, newLoans) => {
+        this.customExcelData = { fileName: '직접입력', model: newModel };
+        this.customAssets = newAssets;
+        this.customLoans = newLoans;
+        this.render();
+      });
+    };
 
     // Render Tab Content
     const contentRoot = document.getElementById('tab-content-root');
@@ -124,7 +199,7 @@ class App {
         renderBenchmark(contentRoot, model);
         break;
       case 'schedule':
-        renderFinancialSchedule(contentRoot);
+        renderFinancialSchedule(contentRoot, this.customAssets, this.customLoans, openEditorHandler);
         break;
       case 'simulation':
         renderSimulation(contentRoot, model);
