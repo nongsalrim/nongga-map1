@@ -4,7 +4,8 @@
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
-import * as XLSX from 'xlsx';
+
+const XLSX = typeof window !== 'undefined' ? window.XLSX : null;
 
 /**
  * 농가 실제 실적과 KAMIS 유통시세/소득조사표 표준을 비교 분석

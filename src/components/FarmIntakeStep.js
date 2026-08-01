@@ -3,7 +3,7 @@
  * @description Step 1: 메인 농가 경영체 정밀 데이터 입력 센터 (컨설팅 전용 메인 진입 폼)
  */
 
-import { CROP_PRESETS } from '../../utils/excelEngine.js';
+import { CROP_PRESETS } from '../utils/excelEngine.js';
 
 export function renderFarmIntakeStep(container, currentModel, currentAssets, currentLoans, onSubmit, onSelectCrop) {
   let modelState = JSON.parse(JSON.stringify(currentModel));

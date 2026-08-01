@@ -1,10 +1,10 @@
-import * as XLSX from 'xlsx';
-import sampleDataRaw from '../data/sampleData.json';
+import { sampleDataRaw } from '../data/sampleData.js';
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
+
+const XLSX = typeof window !== 'undefined' ? window.XLSX : null;
 
 // Pre-defined benchmark crop models (Full 19 Crops Database)
 export const CROP_PRESETS = FULL_CROP_DATABASE;
-
 
 export const SAMPLE_ASSETS = sampleDataRaw.assets || [];
 export const SAMPLE_LOANS = sampleDataRaw.loans || [];
