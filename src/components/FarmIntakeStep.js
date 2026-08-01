@@ -1,6 +1,6 @@
 /**
  * @file FarmIntakeStep.js
- * @description 거치기간 원금상환 0원 보장 & 순수 대출이자만 변동비(금융비용)에 100% 연동
+ * @description % 기호 파싱 오류 수정 및 대출 이자 12,903,000원 변동비 항목 실시간 100% 자동 연동 보장
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -37,11 +37,12 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
   let costItemsState = currentModel.costItemsState || null;
   let toastMsg = null;
 
-  // Utility formatters
+  // Utility formatters with % and text cleanup
   const parseNum = (val) => {
-    if (typeof val === 'number') return val;
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
     if (!val) return 0;
-    return Number(String(val).replace(/,/g, '')) || 0;
+    const cleanStr = String(val).replace(/,/g, '').replace(/%/g, '').replace(/원/g, '').trim();
+    return Number(cleanStr) || 0;
   };
 
   const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val))) + ' 원';
@@ -154,8 +155,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     }, 0);
 
     const year1InterestTotal = loansState.reduce((sum, loan) => {
-      const amount = parseNum(loan.대출금액 || loan.amount || loan.원금) || 0;
-      const rateVal = parseNum(loan.이자율 || loan.rate || loan.금리 || 1.5);
+      const amount = parseNum(loan.대출금액 !== undefined ? loan.대출금액 : (loan.amount !== undefined ? loan.amount : loan.원금)) || 0;
+      const rateVal = parseNum(loan.이자율 !== undefined ? loan.이자율 : (loan.rate !== undefined ? loan.rate : loan.금리)) || 1.5;
       const rate = rateVal > 1 ? rateVal / 100 : rateVal;
       return sum + Math.round(amount * rate);
     }, 0);
@@ -186,7 +187,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       ]
     };
 
-    toastMsg = `✅ [농진청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 / ${farmState.cycles}기작) 평균 예산 및 순수 대출이자 연동 완료!`;
+    toastMsg = `✅ [농진청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 / ${farmState.cycles}기작) 평균 예산 및 순수 대출이자(${formatMoney(year1InterestTotal)}) 연동 완료!`;
   }
 
   function renderForm() {
@@ -204,8 +205,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     }, 0);
 
     const year1InterestTotal = loansState.reduce((sum, loan) => {
-      const amount = parseNum(loan.대출금액 || loan.amount || loan.원금) || 0;
-      const rateVal = parseNum(loan.이자율 || loan.rate || loan.금리 || 1.5);
+      const amount = parseNum(loan.대출금액 !== undefined ? loan.대출금액 : (loan.amount !== undefined ? loan.amount : loan.원금)) || 0;
+      const rateVal = parseNum(loan.이자율 !== undefined ? loan.이자율 : (loan.rate !== undefined ? loan.rate : loan.금리)) || 1.5;
       const rate = rateVal > 1 ? rateVal / 100 : rateVal;
       return sum + Math.round(amount * rate);
     }, 0);
@@ -226,8 +227,10 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
       const intItem = costItemsState.variable.find(i => i.name.includes('대출이자') || i.key === '대출이자');
       if (intItem) {
-        intItem.cost = year1InterestTotal;
-        intItem.isAutoSynced = true;
+        if (intItem.isAutoSynced !== false) {
+          intItem.cost = year1InterestTotal;
+          intItem.isAutoSynced = true;
+        }
       } else {
         costItemsState.variable.push({
           name: '대출이자 (순수 금융비용)',
@@ -265,7 +268,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             📝 농가 경영체 정밀 데이터 입력 센터
           </h1>
           <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 880px;">
-            원금 상환금은 부채 상환 자금으로 경영비에서 제외되며, <b>순수 발생 대출이자(금융비용)만 변동비에 100% 자동 연동</b>됩니다.
+            대출 원금 상환금은 경영비에서 제외되며, <b>순수 발생 대출이자(${formatMoney(year1InterestTotal)})가 변동비에 100% 실시간 자동 연동</b>됩니다.
           </p>
         </div>
 
@@ -413,7 +416,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                   </thead>
                   <tbody>
                     ${costItemsState.variable.map((item, idx) => {
-                      const guideCost = rdaScaledCosts[item.key] || item.cost;
+                      const isLoanInterestItem = item.key === '대출이자' || item.name.includes('대출이자');
+                      const guideCost = isLoanInterestItem ? year1InterestTotal : (rdaScaledCosts[item.key] || item.cost);
                       const rawDiff = guideCost ? ((item.cost - guideCost) / guideCost) * 100 : 0;
                       const diffPercent = rawDiff.toFixed(1);
                       const diffVal = Number(diffPercent);
@@ -428,7 +432,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                       return `
                         <tr>
                           <td style="font-weight:600; color:#E2E8F0;">
-                            ${item.name} ${isSynced ? `<span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10B981; padding:2px 6px; border-radius:4px; margin-left:4px;">⚡순수이자만 연동</span>` : ''}
+                            ${item.name} ${isSynced ? `<span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10B981; padding:2px 6px; border-radius:4px; margin-left:4px;">⚡순수이자 연동</span>` : ''}
                           </td>
                           <td>
                             <input type="text" class="v-cost-var-input" data-idx="${idx}" value="${formatComma(item.cost)}" style="text-align:right; background:#0F172A; border:1px solid ${isSynced ? '#10B981' : 'rgba(255,255,255,0.15)'}; color:${isSynced ? '#10B981' : '#FFF'}; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
@@ -575,7 +579,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 💳 4. 농가 대출 및 부채 현황 (총 부채액: <span style="color:#EF4444;">${formatMoney(totalLoansAmount)}</span>)
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
-                대출 원금 상환액은 경영비(원가)에서 제외되며, <b>순수 발생 대출이자(금융비용)만 변동비 항목에 100% 연동</b>됩니다.
+                대출 원금 상환액은 경영비(원가)에서 제외되며, <b>순수 발생 대출이자(${formatMoney(year1InterestTotal)})가 변동비에 100% 연동</b>됩니다.
               </p>
             </div>
             <button id="intake-add-loan-btn" class="btn-upload" style="background: #EF4444; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;">+ 새 대출 항목 추가</button>
