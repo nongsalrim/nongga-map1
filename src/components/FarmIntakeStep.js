@@ -1,6 +1,6 @@
 /**
  * @file FarmIntakeStep.js
- * @description 천단위 구분기호(쉼표) & 우측 정렬 적용, 면적/기작 입력 시 [농진청 지역 소득조사표 평균 예산 자동 반영 버튼] 탑재
+ * @description 천단위 구분기호(쉼표) & 우측 정렬 적용, 평균가이드 금액 및 % 소수점 첫째자리(1 decimal place) 정밀 표기
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -39,9 +39,12 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
   const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val))) + ' 원';
   const formatComma = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val)));
+  
+  // Format short money to 1 decimal place (e.g. 835.0만 원)
   const formatShortMoney = (val) => {
-    const million = Math.round(parseNum(val) / 10000);
-    return new Intl.NumberFormat('ko-KR').format(million) + '만 원';
+    const million = parseNum(val) / 10000;
+    const formattedNum = (Math.round(million * 10) / 10).toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return `${formattedNum}만 원`;
   };
 
   function applyRdaBenchmarkToInputs() {
@@ -146,7 +149,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             📝 농가 경영체 정밀 데이터 입력 센터
           </h1>
           <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 850px;">
-            면적(㎡/평) 및 기작을 입력하신 후 <b>[🔄 농진청 지역 소득조사표 평균 예산 자동 적용]</b> 버튼을 누르면 입력란에 표준 평균치가 100% 자동 반영됩니다.
+            모든 평균 가이드 금액과 비교 비율(%)에 <b>소수점 첫째 자리(1 decimal place)</b> 정밀 표기가 적용됩니다.
           </p>
         </div>
 
@@ -251,7 +254,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           </div>
         </div>
 
-        <!-- 2. 경영비 세부 비목 입력 (변동비 vs 고정비 구분 & 천단위 쉼표 우측정렬) -->
+        <!-- 2. 경영비 세부 비목 입력 (변동비 vs 고정비 구분 & 소수점 첫째자리 가이드) -->
         <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #FFF; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
           <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap:wrap; gap:10px;">
             <div>
@@ -259,7 +262,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 📋 2. 경영비 세부 비목별 예산 입력 (변동비 vs 고정비 구분)
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
-                우측의 <b>[농진청 ${farmState.region}지역 소득조사표 평균 가이드]</b>를 참조하거나 상단 <b>[🔄 평균 예산 자동 적용]</b> 버튼으로 일괄 자동 입력하세요.
+                우측의 <b>[농진청 ${farmState.region}지역 소득조사표 평균 가이드]</b> (금액 및 % 소수점 첫째 자리 표기)를 참조하세요.
               </p>
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
@@ -295,12 +298,14 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                   <tbody>
                     ${costItemsState.variable.map((item, idx) => {
                       const guideCost = rdaScaledCosts[item.key] || item.cost;
-                      const diffPercent = guideCost ? Math.round(((item.cost - guideCost) / guideCost) * 100) : 0;
-                      const diffBadge = diffPercent > 0 
+                      const rawDiff = guideCost ? ((item.cost - guideCost) / guideCost) * 100 : 0;
+                      const diffPercent = rawDiff.toFixed(1);
+                      const diffVal = Number(diffPercent);
+                      const diffBadge = diffVal > 0 
                         ? `<span style="color:#F87171; font-size:11px;">(+${diffPercent}%)</span>` 
-                        : diffPercent < 0 
+                        : diffVal < 0 
                         ? `<span style="color:#34D399; font-size:11px;">(${diffPercent}%)</span>` 
-                        : `<span style="color:#94A3B8; font-size:11px;">(평균)</span>`;
+                        : `<span style="color:#94A3B8; font-size:11px;">(0.0%)</span>`;
 
                       return `
                         <tr>
@@ -340,12 +345,14 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                   <tbody>
                     ${costItemsState.fixed.map((item, idx) => {
                       const guideCost = rdaScaledCosts[item.key] || item.cost;
-                      const diffPercent = guideCost ? Math.round(((item.cost - guideCost) / guideCost) * 100) : 0;
-                      const diffBadge = diffPercent > 0 
+                      const rawDiff = guideCost ? ((item.cost - guideCost) / guideCost) * 100 : 0;
+                      const diffPercent = rawDiff.toFixed(1);
+                      const diffVal = Number(diffPercent);
+                      const diffBadge = diffVal > 0 
                         ? `<span style="color:#F87171; font-size:11px;">(+${diffPercent}%)</span>` 
-                        : diffPercent < 0 
+                        : diffVal < 0 
                         ? `<span style="color:#34D399; font-size:11px;">(${diffPercent}%)</span>` 
-                        : `<span style="color:#94A3B8; font-size:11px;">(평균)</span>`;
+                        : `<span style="color:#94A3B8; font-size:11px;">(0.0%)</span>`;
 
                       const isSynced = item.isAutoSynced;
 
