@@ -1,12 +1,12 @@
 /**
  * @file FarmIntakeStep.js
- * @description % 기호 파싱 오류 수정 및 대출 이자 12,903,000원 변동비 항목 실시간 100% 자동 연동 보장
+ * @description Submit 버튼 누를 필요 없이 모든 입력 필드 타이핑 즉시 실시간 100% 자동 연동 & 포커스 유지 시스템
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
 
 export function renderFarmIntakeStep(container, currentModel, currentAssets, currentLoans, onSubmit) {
-  let selectedCropKey = currentModel.cropName.replace('업로드: ', '') || '시설상추';
+  let selectedCropKey = currentModel.cropName ? currentModel.cropName.replace('업로드: ', '') : '시설상추';
   if (!FULL_CROP_DATABASE[selectedCropKey]) selectedCropKey = '시설상추';
 
   let baseCropModel = FULL_CROP_DATABASE[selectedCropKey];
@@ -187,7 +187,100 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       ]
     };
 
-    toastMsg = `✅ [농진청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 / ${farmState.cycles}기작) 평균 예산 및 순수 대출이자(${formatMoney(year1InterestTotal)}) 연동 완료!`;
+    toastMsg = `⚡ [농진청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 / ${farmState.cycles}기작) 평균 예산 및 대출이자(${formatMoney(year1InterestTotal)}) 실시간 자동 연동!`;
+  }
+
+  // Silent background state sync to parent component
+  function autoSyncParent(isStepSwitch = false) {
+    const areaScaleFactor = (farmState.areaPyung || 800) / (baseCropModel.areaPyung || 1000);
+    const cycleScaleFactor = (farmState.cycles || 1) / (baseCropModel.cycles || 1);
+    const totalScaleFactor = areaScaleFactor * cycleScaleFactor;
+
+    const calculatedRevenue = Math.round(baseCropModel.revenue * totalScaleFactor);
+    const totalVariableExpenses = costItemsState ? costItemsState.variable.reduce((sum, item) => sum + (parseNum(item.cost) || 0), 0) : 0;
+    const totalFixedExpenses = costItemsState ? costItemsState.fixed.reduce((sum, item) => sum + (parseNum(item.cost) || 0), 0) : 0;
+    const calculatedExpenses = totalVariableExpenses + totalFixedExpenses;
+    const calculatedIncome = calculatedRevenue - calculatedExpenses;
+
+    const totalAssetsCost = assetsState.reduce((sum, a) => sum + (parseNum(a.구입가) || 0), 0);
+    const totalAssetsDepreciation = assetsState.reduce((sum, a) => {
+      const price = parseNum(a.구입가) || 0;
+      const years = parseNum(a.내용년수) || 10;
+      return sum + (years > 0 ? Math.round(price / years) : 0);
+    }, 0);
+
+    const year1InterestTotal = loansState.reduce((sum, loan) => {
+      const amount = parseNum(loan.대출금액 !== undefined ? loan.대출금액 : (loan.amount !== undefined ? loan.amount : loan.원금)) || 0;
+      const rateVal = parseNum(loan.이자율 !== undefined ? loan.이자율 : (loan.rate !== undefined ? loan.rate : loan.금리)) || 1.5;
+      const rate = rateVal > 1 ? rateVal / 100 : rateVal;
+      return sum + Math.round(amount * rate);
+    }, 0);
+
+    const schedule5Years = calc5YearSchedule(loansState);
+
+    const combinedCostBreakdown = costItemsState ? [
+      ...costItemsState.variable.map(i => ({ name: i.name, cost: parseNum(i.cost), percent: calculatedExpenses > 0 ? Number(((parseNum(i.cost) / calculatedExpenses) * 100).toFixed(1)) : 0 })),
+      ...costItemsState.fixed.map(i => ({ name: i.name, cost: parseNum(i.cost), percent: calculatedExpenses > 0 ? Number(((parseNum(i.cost) / calculatedExpenses) * 100).toFixed(1)) : 0 }))
+    ] : [];
+
+    const finalModel = {
+      category: farmState.category,
+      cropName: farmState.cropName,
+      farmOwner: farmState.farmName,
+      region: farmState.region,
+      areaPyung: farmState.areaPyung,
+      areaM2: farmState.areaM2,
+      cycles: farmState.cycles,
+      revenue: calculatedRevenue,
+      operatingExpenses: calculatedExpenses,
+      income: calculatedIncome,
+      netProfit: Math.round(calculatedIncome * 0.8),
+      yieldKg: Math.round((baseCropModel.yieldKg || 100000) * totalScaleFactor),
+      pricePerKg: baseCropModel.pricePerKg || 2500,
+      costBreakdown: combinedCostBreakdown,
+      costItemsState: costItemsState,
+      totalAssetsCost: totalAssetsCost,
+      totalAssetsDepreciation: totalAssetsDepreciation,
+      year1InterestTotal: year1InterestTotal,
+      schedule5Years: schedule5Years,
+      benchmark: baseCropModel.benchmark,
+      kamisData: baseCropModel.kamisData
+    };
+
+    if (onSubmit) onSubmit(finalModel, assetsState, loansState, isStepSwitch);
+  }
+
+  // Render form while preserving user's typing focus & cursor selection position
+  function updateUIWithPreservedFocus() {
+    const activeEl = document.activeElement;
+    const activeId = activeEl ? activeEl.id : null;
+    const activeClass = activeEl ? activeEl.className : null;
+    const activeDataIdx = activeEl ? activeEl.getAttribute('data-idx') : null;
+    const selStart = activeEl && activeEl.selectionStart !== undefined ? activeEl.selectionStart : null;
+    const selEnd = activeEl && activeEl.selectionEnd !== undefined ? activeEl.selectionEnd : null;
+
+    renderForm();
+
+    if (activeId) {
+      const el = document.getElementById(activeId);
+      if (el) {
+        el.focus();
+        if (selStart !== null && selEnd !== null && el.setSelectionRange) {
+          try { el.setSelectionRange(selStart, selEnd); } catch (e) {}
+        }
+      }
+    } else if (activeClass && activeDataIdx !== null) {
+      const className = activeClass.split(' ')[0];
+      const el = container.querySelector(`.${className}[data-idx="${activeDataIdx}"]`);
+      if (el) {
+        el.focus();
+        if (selStart !== null && selEnd !== null && el.setSelectionRange) {
+          try { el.setSelectionRange(selStart, selEnd); } catch (e) {}
+        }
+      }
+    }
+
+    autoSyncParent(false);
   }
 
   function renderForm() {
@@ -263,12 +356,12 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         
         <!-- STEP 1 헤더 타이틀 -->
         <div style="background: linear-gradient(135deg, #0F172A, #1E293B); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 28px 32px; margin-bottom: 24px; text-align: center; color: #FFF; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-          <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16,185,129,0.4); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; display: inline-block; margin-bottom: 10px;">EXCEL CONSULTING INPUT SCHEMA</span>
+          <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10B981; border: 1px solid rgba(16,185,129,0.4); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; display: inline-block; margin-bottom: 10px;">REAL-TIME AUTO SYNC SCHEMA</span>
           <h1 style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 6px;">
-            📝 농가 경영체 정밀 데이터 입력 센터
+            📝 농가 경영체 정밀 데이터 입력 센터 (실시간 100% 자동 연동)
           </h1>
           <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 880px;">
-            대출 원금 상환금은 경영비에서 제외되며, <b>순수 발생 대출이자(${formatMoney(year1InterestTotal)})가 변동비에 100% 실시간 자동 연동</b>됩니다.
+            <b>Submit 버튼을 누르지 않아도 모든 숫자가 타이핑 즉시 실시간으로 100% 자동 계산·연동</b>됩니다!
           </p>
         </div>
 
@@ -342,7 +435,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           <div style="margin-top: 20px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
               <span style="font-size: 14px; font-weight: 800; color: #10B981; display:flex; align-items:center; gap:6px;">
-                ⚡ 소득조사표 & KAMIS 유통정보 자동 산출 결과 미리보기
+                ⚡ 소득조사표 & KAMIS 유통정보 자동 산출 결과 (실시간 자동 연동)
               </span>
               <span style="font-size:12px; color:#94A3B8;">
                 [${farmState.region}] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 / ${farmState.cycles}기작 기준)
@@ -381,7 +474,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 📋 2. 경영비 세부 비목별 예산 입력 (변동비 vs 고정비 구분)
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
-                원금 상환액은 경영비에서 제외되며, <b>[대출 이자(금융비용)]만 100% 자동 연동</b>됩니다.
+                숫자를 입력하는 즉시 <b>총 경영비와 농가소득이 실시간 자동 재계산</b>됩니다.
               </p>
             </div>
             <div style="display:flex; align-items:center; gap:10px;">
@@ -510,7 +603,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 🏗️ 3. 농장 보유 자산 현황 & 연간 감가상각비 계산
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
-                자산 구입가와 내용년수를 입력하시면 <b>연간 감가상각비 총액이 하단에 산출</b>되어 위 <b>[고정비 ➔ 시설/대농구 상각비]</b>에 자동 연동됩니다.
+                자산을 추가/수정하는 즉시 <b>연간 감가상각비가 실시간 자동 계산</b>되어 고정비에 100% 연동됩니다.
               </p>
             </div>
             <button id="intake-add-asset-btn" class="btn-upload" style="background: #3B82F6; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;">+ 새 자산 항목 추가</button>
@@ -579,7 +672,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 💳 4. 농가 대출 및 부채 현황 (총 부채액: <span style="color:#EF4444;">${formatMoney(totalLoansAmount)}</span>)
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
-                대출 원금 상환액은 경영비(원가)에서 제외되며, <b>순수 발생 대출이자(${formatMoney(year1InterestTotal)})가 변동비에 100% 연동</b>됩니다.
+                대출금/금리를 변경하는 즉시 <b>발생 이자(${formatMoney(year1InterestTotal)}) 및 5개년 상환 표가 실시간 100% 자동 재계산</b>됩니다!
               </p>
             </div>
             <button id="intake-add-loan-btn" class="btn-upload" style="background: #EF4444; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;">+ 새 대출 항목 추가</button>
@@ -647,7 +740,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
               <div>
                 <h3 style="font-size:15px; font-weight:800; color:#EF4444; display:flex; align-items:center; gap:6px;">
-                  📅 5개년 연도별 대출 원리금 상환 시뮬레이션
+                  📅 5개년 연도별 대출 원리금 상환 시뮬레이션 (실시간 자동 갱신)
                 </h3>
                 <p style="font-size:12px; color:#94A3B8; margin-top:2px;">
                   등록된 ${loansState.length}개 대출의 연도별 상환 원금 및 순수 발생 이자 현황입니다.
@@ -708,10 +801,10 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
         </div>
 
-        <!-- 하단 대형 분석 실행 CTA 버튼 -->
+        <!-- 하단 대형 분석 바로가기 CTA 버튼 -->
         <div style="text-align: center; margin-top: 36px;">
           <button id="intake-submit-btn" class="btn-upload" style="background: linear-gradient(135deg, #10B981, #059669); padding: 18px 48px; font-size: 18px; font-weight: 900; border-radius: 14px; box-shadow: 0 8px 25px rgba(16,185,129,0.4); cursor: pointer; letter-spacing: -0.5px;">
-            🚀 입력 데이터 기반 맞춤 농가 경영분석 & 1:1 진단서 생성하기 →
+            🚀 실시간 연동 데이터 기반 경영분석 진단서 대시보드 바로가기 →
           </button>
         </div>
 
@@ -721,7 +814,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     // Event Handlers for RDA benchmark apply buttons
     const handleRdaApplyClick = () => {
       applyRdaBenchmarkToInputs();
-      renderForm();
+      updateUIWithPreservedFocus();
     };
 
     const btnRda1 = document.getElementById('btn-apply-rda-direct');
@@ -734,116 +827,138 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     if (closeToast) {
       closeToast.addEventListener('click', () => {
         toastMsg = null;
-        renderForm();
+        updateUIWithPreservedFocus();
       });
     }
 
-    // 7-Column Input Event Handlers
-    document.getElementById('ex-farm-name').addEventListener('change', (e) => { farmState.farmName = e.target.value; });
-    document.getElementById('ex-region').addEventListener('change', (e) => {
+    // Bind event helper for input + change dual binding
+    const bindInput = (id, handler) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', handler);
+        el.addEventListener('change', handler);
+      }
+    };
+
+    // 7-Column Input Event Handlers (Real-time auto update)
+    bindInput('ex-farm-name', (e) => { farmState.farmName = e.target.value; autoSyncParent(false); });
+    
+    bindInput('ex-region', (e) => {
       farmState.region = e.target.value;
       applyRdaBenchmarkToInputs();
-      renderForm();
+      updateUIWithPreservedFocus();
     });
     
-    document.getElementById('ex-category').addEventListener('change', (e) => {
+    bindInput('ex-category', (e) => {
       farmState.category = e.target.value;
       const crops = farmState.category === '전체' ? Object.keys(FULL_CROP_DATABASE) : Object.keys(FULL_CROP_DATABASE).filter(k => (FULL_CROP_DATABASE[k].category || '기타') === farmState.category);
       if (!crops.includes(farmState.cropName)) {
         farmState.cropName = crops[0] || '시설상추';
       }
       applyRdaBenchmarkToInputs();
-      renderForm();
+      updateUIWithPreservedFocus();
     });
 
-    document.getElementById('ex-crop-name').addEventListener('change', (e) => {
+    bindInput('ex-crop-name', (e) => {
       farmState.cropName = e.target.value;
       applyRdaBenchmarkToInputs();
-      renderForm();
+      updateUIWithPreservedFocus();
     });
 
-    document.getElementById('ex-area-m2').addEventListener('change', (e) => {
+    bindInput('ex-area-m2', (e) => {
       const m2 = parseNum(e.target.value);
       farmState.areaM2 = m2;
       farmState.areaPyung = Math.round(m2 / 3.305785);
       applyRdaBenchmarkToInputs();
-      renderForm();
+      updateUIWithPreservedFocus();
     });
 
-    document.getElementById('ex-area-pyung').addEventListener('change', (e) => {
+    bindInput('ex-area-pyung', (e) => {
       const pyung = parseNum(e.target.value);
       farmState.areaPyung = pyung;
       farmState.areaM2 = Math.round(pyung * 3.305785);
       applyRdaBenchmarkToInputs();
-      renderForm();
+      updateUIWithPreservedFocus();
     });
 
-    document.getElementById('ex-cycles').addEventListener('change', (e) => {
+    bindInput('ex-cycles', (e) => {
       farmState.cycles = parseNum(e.target.value) || 1;
       applyRdaBenchmarkToInputs();
-      renderForm();
+      updateUIWithPreservedFocus();
     });
 
-    // Cost Items input handlers
+    // Cost Items input handlers (Real-time auto update)
     document.querySelectorAll('.v-cost-var-input').forEach(inp => {
-      inp.addEventListener('change', (e) => {
+      const handler = (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         costItemsState.variable[idx].cost = parseNum(e.target.value);
         costItemsState.variable[idx].isAutoSynced = false;
-        renderForm();
-      });
+        autoSyncParent(false);
+      };
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
 
     document.querySelectorAll('.v-cost-fix-input').forEach(inp => {
-      inp.addEventListener('change', (e) => {
+      const handler = (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         costItemsState.fixed[idx].cost = parseNum(e.target.value);
         costItemsState.fixed[idx].isAutoSynced = false;
-        renderForm();
-      });
+        autoSyncParent(false);
+      };
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
 
-    // Asset handlers
+    // Asset handlers (Real-time auto update)
     document.getElementById('intake-add-asset-btn').addEventListener('click', () => {
       assetsState.push({ 연번: assetsState.length + 1, 목록: "신규 시설/장비", 구입가: 10000000, 내용년수: 10 });
-      renderForm();
+      updateUIWithPreservedFocus();
     });
 
     document.querySelectorAll('.i-btn-del-asset').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         assetsState.splice(idx, 1);
-        renderForm();
+        updateUIWithPreservedFocus();
       });
     });
 
     document.querySelectorAll('.i-asset-name').forEach(inp => {
-      inp.addEventListener('change', (e) => { assetsState[Number(e.target.getAttribute('data-idx'))].목록 = e.target.value; });
+      const handler = (e) => { assetsState[Number(e.target.getAttribute('data-idx'))].목록 = e.target.value; autoSyncParent(false); };
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
+    
     document.querySelectorAll('.i-asset-price').forEach(inp => {
-      inp.addEventListener('change', (e) => {
+      const handler = (e) => {
         assetsState[Number(e.target.getAttribute('data-idx'))].구입가 = parseNum(e.target.value);
-        renderForm();
-      });
+        updateUIWithPreservedFocus();
+      };
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
+    
     document.querySelectorAll('.i-asset-years').forEach(inp => {
-      inp.addEventListener('change', (e) => {
+      const handler = (e) => {
         assetsState[Number(e.target.getAttribute('data-idx'))].내용년수 = parseNum(e.target.value);
-        renderForm();
-      });
+        updateUIWithPreservedFocus();
+      };
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
 
-    // Loan handlers
+    // Loan handlers (Real-time auto update)
     document.getElementById('intake-add-loan-btn').addEventListener('click', () => {
       loansState.push({ 대출조건: "원리금균등", 은행명: "신규 대출", 대출금액: 50000000, 이자율: 1.5, 대출기간: 10, 거치기간: 2 });
-      renderForm();
+      updateUIWithPreservedFocus();
     });
 
     document.querySelectorAll('.i-btn-del-loan').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         loansState.splice(idx, 1);
-        renderForm();
+        updateUIWithPreservedFocus();
       });
     });
 
@@ -852,80 +967,68 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         const idx = Number(e.target.getAttribute('data-idx'));
         loansState[idx].대출조건 = e.target.value;
         loansState[idx].대출종류 = e.target.value;
-        renderForm();
+        updateUIWithPreservedFocus();
       });
     });
 
     document.querySelectorAll('.i-loan-name').forEach(inp => {
-      inp.addEventListener('change', (e) => { loansState[Number(e.target.getAttribute('data-idx'))].은행명 = e.target.value; });
+      const handler = (e) => { loansState[Number(e.target.getAttribute('data-idx'))].은행명 = e.target.value; autoSyncParent(false); };
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
+
     document.querySelectorAll('.i-loan-amount').forEach(inp => {
-      inp.addEventListener('change', (e) => {
+      const handler = (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         loansState[idx].대출금액 = parseNum(e.target.value);
         loansState[idx].amount = parseNum(e.target.value);
-        renderForm();
-      });
+        updateUIWithPreservedFocus();
+      };
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
+
     document.querySelectorAll('.i-loan-rate').forEach(inp => {
-      inp.addEventListener('change', (e) => {
+      const handler = (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         const val = parseNum(e.target.value);
         loansState[idx].이자율 = val > 1 ? val / 100 : val;
         loansState[idx].rate = val > 1 ? val / 100 : val;
-        renderForm();
-      });
+        updateUIWithPreservedFocus();
+      };
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
+
     document.querySelectorAll('.i-loan-period').forEach(inp => {
-      inp.addEventListener('change', (e) => {
+      const handler = (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         loansState[idx].대출기간 = parseNum(e.target.value);
         loansState[idx].period = parseNum(e.target.value);
-        renderForm();
-      });
+        updateUIWithPreservedFocus();
+      };
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
+
     document.querySelectorAll('.i-loan-grace').forEach(inp => {
-      inp.addEventListener('change', (e) => {
+      const handler = (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         loansState[idx].거치기간 = parseNum(e.target.value);
         loansState[idx].grace = parseNum(e.target.value);
-        renderForm();
-      });
-    });
-
-    // Submit handler
-    document.getElementById('intake-submit-btn').addEventListener('click', () => {
-      const combinedCostBreakdown = [
-        ...costItemsState.variable.map(i => ({ name: i.name, cost: parseNum(i.cost), percent: calculatedExpenses > 0 ? Number(((parseNum(i.cost) / calculatedExpenses) * 100).toFixed(1)) : 0 })),
-        ...costItemsState.fixed.map(i => ({ name: i.name, cost: parseNum(i.cost), percent: calculatedExpenses > 0 ? Number(((parseNum(i.cost) / calculatedExpenses) * 100).toFixed(1)) : 0 }))
-      ];
-
-      const finalModel = {
-        category: farmState.category,
-        cropName: farmState.cropName,
-        farmOwner: farmState.farmName,
-        region: farmState.region,
-        areaPyung: farmState.areaPyung,
-        areaM2: farmState.areaM2,
-        cycles: farmState.cycles,
-        revenue: calculatedRevenue,
-        operatingExpenses: calculatedExpenses,
-        income: calculatedIncome,
-        netProfit: Math.round(calculatedIncome * 0.8),
-        yieldKg: Math.round((baseCropModel.yieldKg || 100000) * totalScaleFactor),
-        pricePerKg: baseCropModel.pricePerKg || 2500,
-        costBreakdown: combinedCostBreakdown,
-        costItemsState: costItemsState,
-        totalAssetsCost: totalAssetsCost,
-        totalAssetsDepreciation: totalAssetsDepreciation,
-        year1InterestTotal: year1InterestTotal,
-        schedule5Years: schedule5Years,
-        benchmark: baseCropModel.benchmark,
-        kamisData: baseCropModel.kamisData
+        updateUIWithPreservedFocus();
       };
-
-      if (onSubmit) onSubmit(finalModel, assetsState, loansState);
+      inp.addEventListener('input', handler);
+      inp.addEventListener('change', handler);
     });
+
+    // Step Switch Button Handler (Explicit jump to Step 2)
+    document.getElementById('intake-submit-btn').addEventListener('click', () => {
+      autoSyncParent(true);
+    });
+
+    // Perform initial background sync on mount
+    autoSyncParent(false);
   }
 
   renderForm();
