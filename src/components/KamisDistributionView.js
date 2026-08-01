@@ -1,13 +1,16 @@
 /**
  * @file KamisDistributionView.js
- * @description KAMIS 유통시세 및 소득조사표 연동 진단 뷰 컴포넌트
+ * @description KAMIS 유통시세 및 소득조사표 연동 진단 뷰 컴포넌트 (안전한 예외 처리 적용)
  */
 
 import { analyzeKamisAlignment, exportExcelReport } from '../utils/kamisEngine.js';
 
 export function renderKamisDistribution(container, model, openReportModal) {
   const analysis = analyzeKamisAlignment(model);
-  const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(val) + ' 원';
+  const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(val || 0)) + ' 원';
+
+  const kamisRef = analysis.kamisRef || {};
+  const monthlyTrends = kamisRef.monthlyPriceTrends || [];
 
   container.innerHTML = `
     <div class="panel-grid">
@@ -27,8 +30,8 @@ export function renderKamisDistribution(container, model, openReportModal) {
 
           <div style="background: rgba(15, 23, 42, 0.7); border:1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md);">
             <div style="font-size:12px; color:var(--text-muted);">KAMIS 최근 도매시세</div>
-            <div style="font-size:20px; font-weight:800; color:#FFF;">${formatMoney(analysis.kamisRef.recentWholesalePrice)} /kg</div>
-            <div style="font-size:11px; color:var(--secondary); margin-top:4px;">5년 평균: ${formatMoney(analysis.kamisRef.avg5YearPrice)}/kg (${analysis.priceVsAvgRatio}%)</div>
+            <div style="font-size:20px; font-weight:800; color:#FFF;">${formatMoney(kamisRef.recentWholesalePrice || analysis.farmPricePerKg)} /kg</div>
+            <div style="font-size:11px; color:var(--secondary); margin-top:4px;">5년 평균: ${formatMoney(kamisRef.avg5YearPrice || analysis.farmPricePerKg)}/kg (${analysis.priceVsAvgRatio}%)</div>
           </div>
 
           <div style="background: rgba(15, 23, 42, 0.7); border:1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md);">
@@ -40,7 +43,7 @@ export function renderKamisDistribution(container, model, openReportModal) {
 
         <div style="margin-top:16px;">
           <div style="font-size:14px; font-weight:700; margin-bottom:10px;">📈 KAMIS 품목별 월별 가격 동향 (최근 시세)</div>
-          <div class="chart-wrapper">
+          <div class="chart-wrapper" style="height: 250px; position: relative;">
             <canvas id="kamisPriceChart"></canvas>
           </div>
         </div>
@@ -84,10 +87,10 @@ export function renderKamisDistribution(container, model, openReportModal) {
         </div>
 
         <div style="margin-top:20px; text-align:center; display:flex; gap:10px; justify-content:center;">
-          <button id="btn-export-excel" class="btn-upload" style="background:#059669;">
+          <button id="btn-export-excel" class="btn-upload" style="background:#059669; border:none; cursor:pointer;">
             📊 엑셀 진단서 다운로드
           </button>
-          <button id="btn-open-pdf-modal" class="btn-upload" style="background:linear-gradient(135deg, #3B82F6, #1D4ED8);">
+          <button id="btn-open-pdf-modal" class="btn-upload" style="background:linear-gradient(135deg, #3B82F6, #1D4ED8); border:none; cursor:pointer;">
             📄 PDF 종합진단 보고서 출력
           </button>
         </div>
@@ -95,41 +98,54 @@ export function renderKamisDistribution(container, model, openReportModal) {
     </div>
   `;
 
-  // Render KAMIS Monthly Price Line Chart
-  const ctx = document.getElementById('kamisPriceChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: analysis.kamisRef.monthlyPriceTrends.map(m => m.month),
-      datasets: [{
-        label: `${analysis.cropName} KAMIS 도매가격 (원/kg)`,
-        data: analysis.kamisRef.monthlyPriceTrends.map(m => m.price),
-        borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59, 130, 246, 0.15)',
-        fill: true,
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { ticks: { color: '#94A3B8' }, grid: { display: false } },
-        y: { ticks: { color: '#94A3B8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-      },
-      plugins: {
-        legend: { labels: { color: '#94A3B8', font: { family: 'Pretendard' } } }
-      }
+  // Render KAMIS Monthly Price Line Chart Safely
+  const canvas = document.getElementById('kamisPriceChart');
+  if (canvas && typeof window !== 'undefined' && window.Chart) {
+    try {
+      const ctx = canvas.getContext('2d');
+      new window.Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: monthlyTrends.map(m => m.month),
+          datasets: [{
+            label: `${analysis.cropName} KAMIS 도매가격 (원/kg)`,
+            data: monthlyTrends.map(m => m.price),
+            borderColor: '#3B82F6',
+            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#94A3B8' }, grid: { display: false } },
+            y: { ticks: { color: '#94A3B8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          },
+          plugins: {
+            legend: { labels: { color: '#94A3B8', font: { family: 'Pretendard' } } }
+          }
+        }
+      });
+    } catch (err) {
+      console.warn('Chart rendering issue:', err);
     }
-  });
+  }
 
   // Export Excel Event Listener
-  document.getElementById('btn-export-excel').addEventListener('click', () => {
-    exportExcelReport(model, analysis);
-  });
+  const btnExport = document.getElementById('btn-export-excel');
+  if (btnExport) {
+    btnExport.addEventListener('click', () => {
+      exportExcelReport(model, analysis);
+    });
+  }
 
   // Open PDF Modal Event Listener
-  document.getElementById('btn-open-pdf-modal').addEventListener('click', () => {
-    openReportModal(model, analysis);
-  });
+  const btnPdf = document.getElementById('btn-open-pdf-modal');
+  if (btnPdf) {
+    btnPdf.addEventListener('click', () => {
+      openReportModal(model, analysis);
+    });
+  }
 }
