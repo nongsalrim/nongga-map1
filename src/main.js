@@ -6,6 +6,8 @@ import { renderBenchmark } from './components/BenchmarkView.js';
 import { renderFinancialSchedule } from './components/FinancialScheduleView.js';
 import { renderSimulation } from './components/SimulationView.js';
 import { renderKamisDistribution } from './components/KamisDistributionView.js';
+import { renderBepSensitivity } from './components/BepSensitivityView.js';
+import { renderCostStrategy } from './components/CostStrategyView.js';
 import { renderPdfReportModal } from './components/PdfReportModal.js';
 import { renderFarmProfileEditorModal } from './components/FarmProfileEditorModal.js';
 import { CROP_PRESETS, SAMPLE_ASSETS, SAMPLE_LOANS, parseExcelFile } from './utils/excelEngine.js';
@@ -14,7 +16,7 @@ class App {
   constructor() {
     this.viewStep = 'input'; // 'input' (Step 1 메인 데이터 입력 센터) | 'result' (Step 2 진단 결과 보고서)
     this.selectedCrop = '시설수박';
-    this.activeTab = 'survey'; // 'survey', 'kamis', 'benchmark', 'schedule', 'simulation'
+    this.activeTab = 'survey'; // 'survey', 'kamis', 'benchmark', 'schedule', 'simulation', 'bep', 'strategy'
     this.customExcelData = null;
     this.customAssets = JSON.parse(JSON.stringify(SAMPLE_ASSETS));
     this.customLoans = JSON.parse(JSON.stringify(SAMPLE_LOANS));
@@ -100,12 +102,14 @@ class App {
         model,
         this.customAssets,
         this.customLoans,
-        (newModel, newAssets, newLoans) => {
+        (newModel, newAssets, newLoans, isStepSwitch) => {
           this.customExcelData = { fileName: '직접입력', model: newModel };
           this.customAssets = newAssets;
           this.customLoans = newLoans;
-          this.viewStep = 'result'; // Move to Step 2!
-          this.render();
+          if (isStepSwitch) {
+            this.viewStep = 'result'; // Move to Step 2!
+            this.render();
+          }
         },
         (cropName) => {
           this.selectedCrop = cropName;
@@ -116,7 +120,7 @@ class App {
       return;
     }
 
-    // Step 2: 컨설팅 종합 진단 결과 대시보드 (스크린샷 결과 화면)
+    // Step 2: 컨설팅 종합 진단 결과 대시보드 (7대 탭 확장 완료)
     appEl.innerHTML = `
       <div id="header-root"></div>
       
@@ -127,19 +131,21 @@ class App {
             <span class="badge" style="background:rgba(16,185,129,0.2); color:#10B981; border:1px solid rgba(16,185,129,0.3); margin-right:10px;">STEP 2 RESULT</span>
             <span style="color:#FFF; font-weight:700; font-size:14px;">농가 맞춤 진단서: <b style="color:#10B981;">${model.cropName}</b> (${model.areaPyung || 1000}평)</span>
           </div>
-          <button id="btn-back-to-input" class="btn-upload" style="background:linear-gradient(135deg, #3B82F6, #1D4ED8); border:none; padding:8px 16px; border-radius:8px; font-weight:700; font-size:13px;">
+          <button id="btn-back-to-input" class="btn-upload" style="background:linear-gradient(135deg, #3B82F6, #1D4ED8); border:none; padding:8px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">
             ✏️ 농가 데이터 재입력 / 수정하기
           </button>
         </div>
 
         <div id="kpi-root"></div>
 
-        <nav class="nav-tabs">
+        <nav class="nav-tabs" style="display:flex; flex-wrap:wrap; gap:8px;">
           <button class="nav-tab ${this.activeTab === 'survey' ? 'active' : ''}" data-tab="survey">📋 1. 소득조사 & 원가분석</button>
           <button class="nav-tab ${this.activeTab === 'kamis' ? 'active' : ''}" data-tab="kamis">🚚 2. KAMIS 유통시세 & 진단</button>
           <button class="nav-tab ${this.activeTab === 'benchmark' ? 'active' : ''}" data-tab="benchmark">🏆 3. 상·하위 20% 벤치마킹</button>
           <button class="nav-tab ${this.activeTab === 'schedule' ? 'active' : ''}" data-tab="schedule">🏛️ 4. 자산 & 대출 스케줄</button>
           <button class="nav-tab ${this.activeTab === 'simulation' ? 'active' : ''}" data-tab="simulation">⚡ 5. 6개년 시뮬레이터</button>
+          <button class="nav-tab ${this.activeTab === 'bep' ? 'active' : ''}" data-tab="bep">🎯 6. 손익분기점 & 민감도 분석</button>
+          <button class="nav-tab ${this.activeTab === 'strategy' ? 'active' : ''}" data-tab="strategy">💡 7. 원가절감 처방전 & 경영개선 전략</button>
         </nav>
 
         <div id="tab-content-root"></div>
@@ -203,6 +209,12 @@ class App {
         break;
       case 'simulation':
         renderSimulation(contentRoot, model);
+        break;
+      case 'bep':
+        renderBepSensitivity(contentRoot, model);
+        break;
+      case 'strategy':
+        renderCostStrategy(contentRoot, model);
         break;
     }
   }
