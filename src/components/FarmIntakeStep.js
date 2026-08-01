@@ -1,6 +1,6 @@
 /**
  * @file FarmIntakeStep.js
- * @description 천단위 구분기호(쉼표) & 우측 정렬 적용, 자산 감가상각비 하단 총액 집계 및 고정비 자동 연동 정밀 입력 센터
+ * @description 천단위 구분기호(쉼표) & 우측 정렬 적용, 면적/기작 입력 시 [농진청 지역 소득조사표 평균 예산 자동 반영 버튼] 탑재
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -27,6 +27,9 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
   // Default detailed cost state (Variable & Fixed)
   let costItemsState = currentModel.costItemsState || null;
 
+  // Notification message banner state
+  let toastMsg = null;
+
   // Utility formatters
   const parseNum = (val) => {
     if (typeof val === 'number') return val;
@@ -40,6 +43,46 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const million = Math.round(parseNum(val) / 10000);
     return new Intl.NumberFormat('ko-KR').format(million) + '만 원';
   };
+
+  function applyRdaBenchmarkToInputs() {
+    baseCropModel = FULL_CROP_DATABASE[farmState.cropName] || FULL_CROP_DATABASE['시설상추'];
+    const areaScaleFactor = (farmState.areaPyung || 800) / (baseCropModel.areaPyung || 1000);
+    const cycleScaleFactor = (farmState.cycles || 1) / (baseCropModel.cycles || 1);
+    const totalScaleFactor = areaScaleFactor * cycleScaleFactor;
+
+    const totalAssetsDepreciation = assetsState.reduce((sum, a) => {
+      const price = parseNum(a.구입가) || 0;
+      const years = parseNum(a.내용년수) || 10;
+      return sum + (years > 0 ? Math.round(price / years) : 0);
+    }, 0);
+
+    const rdaScaledCosts = (baseCropModel.costBreakdown || []).reduce((acc, item) => {
+      acc[item.name] = Math.round(item.cost * totalScaleFactor);
+      return acc;
+    }, {});
+
+    costItemsState = {
+      _cropName: farmState.cropName,
+      _scale: totalScaleFactor,
+      variable: [
+        { name: '종자/종묘비', key: '종자/종묘비', cost: rdaScaledCosts['종자/종묘비'] || Math.round(12500000 * totalScaleFactor) },
+        { name: '보통비료비', key: '보통비료비', cost: rdaScaledCosts['보통비료비'] || Math.round(8300000 * totalScaleFactor) },
+        { name: '부산물비료비', key: '부산물비료비', cost: rdaScaledCosts['부산물비료비'] || Math.round(7300000 * totalScaleFactor) },
+        { name: '농약비', key: '농약비', cost: rdaScaledCosts['농약비'] || Math.round(5200000 * totalScaleFactor) },
+        { name: '광열비/동력비', key: '기타비용 및 광열비', cost: rdaScaledCosts['기타비용 및 광열비'] || Math.round(10400000 * totalScaleFactor) },
+        { name: '고용인건비', key: '고용인건비', cost: Math.round(15000000 * totalScaleFactor) },
+        { name: '기타재료비', key: '기타재료비', cost: rdaScaledCosts['기타재료비'] || Math.round(33000000 * totalScaleFactor) }
+      ],
+      fixed: [
+        { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: totalAssetsDepreciation > 0 ? totalAssetsDepreciation : (rdaScaledCosts['대농구/시설상각비'] || Math.round(15600000 * totalScaleFactor)), isAutoSynced: totalAssetsDepreciation > 0 },
+        { name: '자동차/운반비', key: '자동차비', cost: rdaScaledCosts['자동차비'] || Math.round(11400000 * totalScaleFactor) },
+        { name: '수리 및 유지관리비', key: '수리비', cost: Math.round(4500000 * totalScaleFactor) },
+        { name: '임차료/기타 고정비', key: '기타고정비', cost: Math.round(6800000 * totalScaleFactor) }
+      ]
+    };
+
+    toastMsg = `✅ [농진청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 / ${farmState.cycles}기작) 평균 예산이 입력란에 성공적으로 자동 반영되었습니다!`;
+  }
 
   function renderForm() {
     baseCropModel = FULL_CROP_DATABASE[farmState.cropName] || FULL_CROP_DATABASE['시설상추'];
@@ -65,27 +108,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
     // Initialize or sync costItemsState if crop/size changed
     if (!costItemsState || costItemsState._cropName !== farmState.cropName || costItemsState._scale !== totalScaleFactor) {
-      costItemsState = {
-        _cropName: farmState.cropName,
-        _scale: totalScaleFactor,
-        // 변동비 (Variable Costs)
-        variable: [
-          { name: '종자/종묘비', key: '종자/종묘비', cost: rdaScaledCosts['종자/종묘비'] || Math.round(12500000 * totalScaleFactor) },
-          { name: '보통비료비', key: '보통비료비', cost: rdaScaledCosts['보통비료비'] || Math.round(8300000 * totalScaleFactor) },
-          { name: '부산물비료비', key: '부산물비료비', cost: rdaScaledCosts['부산물비료비'] || Math.round(7300000 * totalScaleFactor) },
-          { name: '농약비', key: '농약비', cost: rdaScaledCosts['농약비'] || Math.round(5200000 * totalScaleFactor) },
-          { name: '광열비/동력비', key: '기타비용 및 광열비', cost: rdaScaledCosts['기타비용 및 광열비'] || Math.round(10400000 * totalScaleFactor) },
-          { name: '고용인건비', key: '고용인건비', cost: Math.round(15000000 * totalScaleFactor) },
-          { name: '기타재료비', key: '기타재료비', cost: rdaScaledCosts['기타재료비'] || Math.round(33000000 * totalScaleFactor) }
-        ],
-        // 고정비 (Fixed Costs) - 시설/대농구 상각비는 자산 감가상각비 총액으로 자동 연동!
-        fixed: [
-          { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: totalAssetsDepreciation > 0 ? totalAssetsDepreciation : (rdaScaledCosts['대농구/시설상각비'] || Math.round(15600000 * totalScaleFactor)), isAutoSynced: true },
-          { name: '자동차/운반비', key: '자동차비', cost: rdaScaledCosts['자동차비'] || Math.round(11400000 * totalScaleFactor) },
-          { name: '수리 및 유지관리비', key: '수리비', cost: Math.round(4500000 * totalScaleFactor) },
-          { name: '임차료/기타 고정비', key: '기타고정비', cost: Math.round(6800000 * totalScaleFactor) }
-        ]
-      };
+      applyRdaBenchmarkToInputs();
     } else {
       // Auto update 시설/대농구 상각비 with current totalAssetsDepreciation
       const depItem = costItemsState.fixed.find(i => i.name === '시설/대농구 상각비');
@@ -122,18 +145,27 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           <h1 style="font-size: 26px; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 6px;">
             📝 농가 경영체 정밀 데이터 입력 센터
           </h1>
-          <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 820px;">
-            모든 숫자 입력 필드에 <b>천단위 구분기호(쉼표)</b> 및 <b>우측 정렬</b>이 적용되어 있으며, 자산 입력 시 <b>연간 감가상각비 총액이 고정비에 자동 반영</b>됩니다.
+          <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 850px;">
+            면적(㎡/평) 및 기작을 입력하신 후 <b>[🔄 농진청 지역 소득조사표 평균 예산 자동 적용]</b> 버튼을 누르면 입력란에 표준 평균치가 100% 자동 반영됩니다.
           </p>
         </div>
 
+        ${toastMsg ? `
+          <div style="background: rgba(16,185,129,0.15); border: 1px solid #10B981; color: #A7F3D0; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; font-size: 14px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;">
+            <span>${toastMsg}</span>
+            <button id="close-toast-btn" style="background:none; border:none; color:#A7F3D0; font-size:16px; cursor:pointer; font-weight:900;">✕</button>
+          </div>
+        ` : ''}
+
         <!-- 1. 엑셀 7대 컬럼 경영체 기본 데이터 입력 표 -->
         <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #FFF; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap:wrap; gap:10px;">
             <h2 style="font-size: 17px; font-weight: 800; color: #10B981; display: flex; align-items: center; gap: 8px;">
               📊 1. 농가 경영체 기본 데이터 (엑셀 표준 입력 양식)
             </h2>
-            <span style="font-size: 12px; color: #94A3B8;">* 숫자를 입력하시면 1,000단위 쉼표가 자동 적용되며 우측 정렬됩니다.</span>
+            <button id="btn-apply-rda-direct" style="background: linear-gradient(135deg, #10B981, #059669); color: #FFF; border: none; padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 14px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+              🔄 면적·기작 기준 농진청 지역 소득조사표 평균 예산 입력란에 자동 적용
+            </button>
           </div>
 
           <div class="data-table-container">
@@ -227,10 +259,13 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 📋 2. 경영비 세부 비목별 예산 입력 (변동비 vs 고정비 구분)
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
-                우측의 <b>[농진청 ${farmState.region}지역 소득조사표 평균 가이드]</b>를 참조하여 예산을 입력하세요. (천단위 쉼표 및 우측 정렬 적용)
+                우측의 <b>[농진청 ${farmState.region}지역 소득조사표 평균 가이드]</b>를 참조하거나 상단 <b>[🔄 평균 예산 자동 적용]</b> 버튼으로 일괄 자동 입력하세요.
               </p>
             </div>
-            <div style="text-align:right;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <button id="btn-apply-rda-section2" style="background: rgba(16,185,129,0.2); border:1px solid #10B981; color:#10B981; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">
+                🔄 지역 평균 예산 자동 적용
+              </button>
               <span class="badge" style="background:rgba(245,158,11,0.2); color:#F59E0B; border:1px solid rgba(245,158,11,0.3); font-size:13px; font-weight:700;">
                 총 경영비 합계: ${formatMoney(calculatedExpenses)}
               </span>
@@ -474,9 +509,33 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       </div>
     `;
 
+    // Event Handlers for RDA benchmark apply buttons
+    const handleRdaApplyClick = () => {
+      applyRdaBenchmarkToInputs();
+      renderForm();
+    };
+
+    const btnRda1 = document.getElementById('btn-apply-rda-direct');
+    if (btnRda1) btnRda1.addEventListener('click', handleRdaApplyClick);
+
+    const btnRda2 = document.getElementById('btn-apply-rda-section2');
+    if (btnRda2) btnRda2.addEventListener('click', handleRdaApplyClick);
+
+    const closeToast = document.getElementById('close-toast-btn');
+    if (closeToast) {
+      closeToast.addEventListener('click', () => {
+        toastMsg = null;
+        renderForm();
+      });
+    }
+
     // 7-Column Input Event Handlers
     document.getElementById('ex-farm-name').addEventListener('change', (e) => { farmState.farmName = e.target.value; });
-    document.getElementById('ex-region').addEventListener('change', (e) => { farmState.region = e.target.value; });
+    document.getElementById('ex-region').addEventListener('change', (e) => {
+      farmState.region = e.target.value;
+      applyRdaBenchmarkToInputs();
+      renderForm();
+    });
     
     document.getElementById('ex-category').addEventListener('change', (e) => {
       farmState.category = e.target.value;
@@ -484,34 +543,36 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       if (!crops.includes(farmState.cropName)) {
         farmState.cropName = crops[0] || '시설상추';
       }
+      applyRdaBenchmarkToInputs();
       renderForm();
     });
 
     document.getElementById('ex-crop-name').addEventListener('change', (e) => {
       farmState.cropName = e.target.value;
-      costItemsState = null; // reset to sync new crop defaults
+      applyRdaBenchmarkToInputs();
       renderForm();
     });
 
-    // Auto sync ㎡ and 평
-    document.getElementById('ex-area-m2').addEventListener('input', (e) => {
+    // Auto sync ㎡ and 평 & auto apply RDA benchmark
+    document.getElementById('ex-area-m2').addEventListener('change', (e) => {
       const m2 = parseNum(e.target.value);
       farmState.areaM2 = m2;
       farmState.areaPyung = Math.round(m2 / 3.305785);
-      const pyungEl = document.getElementById('ex-area-pyung');
-      if (pyungEl) pyungEl.value = formatComma(farmState.areaPyung);
+      applyRdaBenchmarkToInputs();
+      renderForm();
     });
 
-    document.getElementById('ex-area-pyung').addEventListener('input', (e) => {
+    document.getElementById('ex-area-pyung').addEventListener('change', (e) => {
       const pyung = parseNum(e.target.value);
       farmState.areaPyung = pyung;
       farmState.areaM2 = Math.round(pyung * 3.305785);
-      const m2El = document.getElementById('ex-area-m2');
-      if (m2El) m2El.value = formatComma(farmState.areaM2);
+      applyRdaBenchmarkToInputs();
+      renderForm();
     });
 
     document.getElementById('ex-cycles').addEventListener('change', (e) => {
       farmState.cycles = parseNum(e.target.value) || 1;
+      applyRdaBenchmarkToInputs();
       renderForm();
     });
 
