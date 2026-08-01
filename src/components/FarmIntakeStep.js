@@ -1,6 +1,6 @@
 /**
  * @file FarmIntakeStep.js
- * @description 거치기간 동안 원금상환 0원 엄격 보장 & 대출기간/거치기간 정규식 자동 추출 정밀 파서
+ * @description 거치기간 동안 원금상환 0원 엄격 보장 & 동적 상환구분 뱃지 (전액거치 / 혼합상환 / 원리금상환)
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -34,10 +34,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     ];
   }
 
-  // Default detailed cost state (Variable & Fixed)
   let costItemsState = currentModel.costItemsState || null;
-
-  // Notification message banner state
   let toastMsg = null;
 
   // Utility formatters
@@ -50,19 +47,28 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
   const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val))) + ' 원';
   const formatComma = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val)));
   
-  // Format short money to 1 decimal place (e.g. 835.0만 원)
   const formatShortMoney = (val) => {
     const million = parseNum(val) / 10000;
     const formattedNum = (Math.round(million * 10) / 10).toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     return `${formattedNum}만 원`;
   };
 
-  // Calculate 5-Year Debt Repayment Schedule across all loans
+  // Calculate 5-Year Debt Repayment Schedule with dynamic grace & repayment tracking
   function calc5YearSchedule(loans) {
-    const schedule = [1, 2, 3, 4, 5].map(y => ({ year: y, principal: 0, interest: 0, total: 0, remainingBalance: 0, isGrace: false }));
+    const schedule = [1, 2, 3, 4, 5].map(y => ({
+      year: y,
+      principal: 0,
+      interest: 0,
+      total: 0,
+      remainingBalance: 0,
+      graceCount: 0,
+      repayCount: 0
+    }));
 
     loans.forEach(loan => {
       let balance = parseNum(loan.대출금액 !== undefined ? loan.대출금액 : (loan.amount !== undefined ? loan.amount : loan.원금)) || 0;
+      if (balance <= 0) return;
+
       const rateVal = parseNum(loan.이자율 !== undefined ? loan.이자율 : (loan.rate !== undefined ? loan.rate : loan.금리)) || 1.5;
       const rate = rateVal > 1 ? rateVal / 100 : rateVal;
 
@@ -74,7 +80,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       if (!period) period = 10;
 
       let grace = parseNum(loan.거치기간 !== undefined ? loan.거치기간 : (loan.grace !== undefined ? loan.grace : loan.gracePeriod));
-      if (!grace && typeof loan.대출기간 === 'string') {
+      if (grace === undefined && typeof loan.대출기간 === 'string') {
         const match = loan.대출기간.match(/(\d+)\s*년\s*거치/);
         if (match) grace = parseInt(match[1], 10);
       }
@@ -90,11 +96,12 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         let i = Math.round(balance * rate);
 
         if (y <= grace) {
-          // 거치기간: 원금 상환은 무조건 0원! (이자만 상환)
+          // 거치기간: 원금 상환은 0원
           p = 0;
-          schedule[y - 1].isGrace = true;
+          schedule[y - 1].graceCount++;
         } else {
-          // 상환기간: 원금 + 이자 상환 개시
+          // 상환기간: 원금 상환 진행
+          schedule[y - 1].repayCount++;
           if (type === '원금균등') {
             p = Math.min(balance, Math.round((parseNum(loan.대출금액) || 0) / repayYears));
           } else if (type === '일시상환') {
@@ -187,12 +194,10 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
   function renderForm() {
     baseCropModel = FULL_CROP_DATABASE[farmState.cropName] || FULL_CROP_DATABASE['시설상추'];
     
-    // Auto calculate scale factor based on Pyung & Cycles
     const areaScaleFactor = (farmState.areaPyung || 800) / (baseCropModel.areaPyung || 1000);
     const cycleScaleFactor = (farmState.cycles || 1) / (baseCropModel.cycles || 1);
     const totalScaleFactor = areaScaleFactor * cycleScaleFactor;
 
-    // Calculate Total Asset Depreciation from assetsState
     const totalAssetsCost = assetsState.reduce((sum, a) => sum + (parseNum(a.구입가) || 0), 0);
     const totalAssetsDepreciation = assetsState.reduce((sum, a) => {
       const price = parseNum(a.구입가) || 0;
@@ -200,7 +205,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       return sum + (years > 0 ? Math.round(price / years) : 0);
     }, 0);
 
-    // Calculate Year 1 Interest Total from loansState
     const year1InterestTotal = loansState.reduce((sum, loan) => {
       const amount = parseNum(loan.대출금액 || loan.amount || loan.원금) || 0;
       const rateVal = parseNum(loan.이자율 || loan.rate || loan.금리 || 1.5);
@@ -208,24 +212,20 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       return sum + Math.round(amount * rate);
     }, 0);
 
-    // RDA Benchmark cost breakdown scaled for current farm size
     const rdaScaledCosts = (baseCropModel.costBreakdown || []).reduce((acc, item) => {
       acc[item.name] = Math.round(item.cost * totalScaleFactor);
       return acc;
     }, {});
 
-    // Initialize or sync costItemsState if crop/size changed
     if (!costItemsState || costItemsState._cropName !== farmState.cropName || costItemsState._scale !== totalScaleFactor) {
       applyRdaBenchmarkToInputs();
     } else {
-      // Auto update 시설/대농구 상각비 with current totalAssetsDepreciation
       const depItem = costItemsState.fixed.find(i => i.name === '시설/대농구 상각비');
       if (depItem && totalAssetsDepreciation > 0) {
         depItem.cost = totalAssetsDepreciation;
         depItem.isAutoSynced = true;
       }
 
-      // Auto update 대출이자 (금융비용) with current year1InterestTotal
       const intItem = costItemsState.variable.find(i => i.name === '대출이자 (금융비용)' || i.key === '대출이자');
       if (intItem) {
         intItem.cost = year1InterestTotal;
@@ -241,8 +241,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     }
 
     const calculatedRevenue = Math.round(baseCropModel.revenue * totalScaleFactor);
-    
-    // Sum total expenses from costItemsState
     const totalVariableExpenses = costItemsState.variable.reduce((sum, item) => sum + (parseNum(item.cost) || 0), 0);
     const totalFixedExpenses = costItemsState.fixed.reduce((sum, item) => sum + (parseNum(item.cost) || 0), 0);
     const calculatedExpenses = totalVariableExpenses + totalFixedExpenses;
@@ -269,7 +267,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             📝 농가 경영체 정밀 데이터 입력 센터
           </h1>
           <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 880px;">
-            거치기간 동안 <b>원금 상환은 0원이며 이자만 납입</b>됩니다. 이 발생 이자는 <b>변동비(대출이자) 항목에 실시간 100% 자동 연동</b>됩니다.
+            대출 거치기간 동안 <b>원금 상환은 0원이며 이자만 납입</b>됩니다. 대출 거치기간 및 상환방식을 변경하면 <b>연도별 상환 구분과 뱃지가 즉시 실시간 동적 변경</b>됩니다.
           </p>
         </div>
 
@@ -374,7 +372,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           </div>
         </div>
 
-        <!-- 2. 경영비 세부 비목 입력 (변동비 vs 고정비 구분 & 소수점 첫째자리 가이드) -->
+        <!-- 2. 경영비 세부 비목 입력 -->
         <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #FFF; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
           <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap:wrap; gap:10px;">
             <div>
@@ -502,7 +500,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           </div>
         </div>
 
-        <!-- 3. 농장 보유 자산 목록 (하단 감가상각비 총액 계산 & 고정비 자동 연동!) -->
+        <!-- 3. 농장 보유 자산 목록 -->
         <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #FFF; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
             <div>
@@ -548,7 +546,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                   `;
                 }).join('')}
               </tbody>
-              <!-- 자산 하단 감가상각비 총액 계산 풋터 -->
               <tfoot style="background: rgba(59, 130, 246, 0.15); font-weight: 800;">
                 <tr>
                   <td colspan="2" style="text-align:left; color:#93C5FD; padding:14px 16px;">
@@ -567,7 +564,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             </table>
           </div>
 
-          <!-- 연동 안내 카드 -->
           <div style="margin-top:14px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:10px 16px; font-size:12px; color:#93C5FD; display:flex; align-items:center; justify-content:space-between;">
             <span>💡 <b>상각비 자동 연동 안내</b>: 위 연간 감가상각비 총액 <b>${formatMoney(totalAssetsDepreciation)}</b>이 [2. 고정비 ➔ 시설/대농구 상각비] 항목에 실시간 연동 적용 중입니다.</span>
           </div>
@@ -580,7 +576,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               <h2 style="font-size: 17px; font-weight: 800; color: #EF4444; display: flex; align-items: center; gap: 8px;">
                 💳 4. 농가 대출 및 부채 현황 (총 부채액: <span style="color:#EF4444;">${formatMoney(totalLoansAmount)}</span>)
               </h2>
-              <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">청창농 자금, 신용보증, 시설자금 대출 현황을 등록하여 연말 상환 스케줄을 산출합니다.</p>
+              <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">대출 거치기간이나 상환기간을 변경하면 <b>아래 연도별 상환 스케줄과 상환 구분 뱃지가 즉시 동적 재계산</b>됩니다.</p>
             </div>
             <button id="intake-add-loan-btn" class="btn-upload" style="background: #EF4444; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;">+ 새 대출 항목 추가</button>
           </div>
@@ -614,11 +610,11 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                   if (!period) period = 10;
 
                   let grace = parseNum(loan.거치기간 !== undefined ? loan.거치기간 : (loan.grace !== undefined ? loan.grace : loan.gracePeriod));
-                  if (!grace && typeof loan.대출기간 === 'string') {
+                  if (grace === undefined && typeof loan.대출기간 === 'string') {
                     const match = loan.대출기간.match(/(\d+)\s*년\s*거치/);
                     if (match) grace = parseInt(match[1], 10);
                   }
-                  if (!grace) grace = 0;
+                  if (grace === undefined) grace = 0;
 
                   return `
                     <tr>
@@ -647,10 +643,10 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
               <div>
                 <h3 style="font-size:15px; font-weight:800; color:#EF4444; display:flex; align-items:center; gap:6px;">
-                  📅 5개년 연도별 대출 원리금 상환 시뮬레이션 (거치기간 원금상환 0원 명시)
+                  📅 5개년 연도별 대출 원리금 상환 시뮬레이션 (동적 상환구분 뱃지)
                 </h3>
                 <p style="font-size:12px; color:#94A3B8; margin-top:2px;">
-                  등록된 ${loansState.length}개 대출의 1년 차 ~ 5년 차 연도별 상환 원금(거치 시 0원), 이자 및 총 상환 부담액입니다.
+                  등록된 ${loansState.length}개 대출의 1년 차 ~ 5년 차 연도별 상환 원금, 이자 및 총 상환 부담액입니다.
                 </p>
               </div>
               <span class="badge" style="background:rgba(239,68,68,0.2); color:#FCA5A5; border:1px solid rgba(239,68,68,0.3); font-size:12px; font-weight:700;">
@@ -671,22 +667,29 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                   </tr>
                 </thead>
                 <tbody>
-                  ${schedule5Years.map(item => `
-                    <tr>
-                      <td style="font-weight:800; color:#FFF;">${item.year}년 차</td>
-                      <td>
-                        ${item.isGrace 
-                          ? `<span style="color:#FBBF24; font-size:11px; background:rgba(251,191,36,0.15); padding:2px 8px; border-radius:4px; font-weight:700;">🟡 거치기간 (원금 0원 / 이자만 납입)</span>` 
-                          : `<span style="color:#34D399; font-size:11px; background:rgba(52,211,153,0.15); padding:2px 8px; border-radius:4px; font-weight:700;">🟢 원리금 상환 진행</span>`}
-                      </td>
-                      <td style="text-align:right; font-family: Pretendard, monospace; font-weight:700; color:${item.principal === 0 ? '#94A3B8' : '#FFF'};">
-                        ${item.principal === 0 ? '0 원 (원금 유예)' : formatMoney(item.principal)}
-                      </td>
-                      <td style="text-align:right; color:#FBBF24; font-family: Pretendard, monospace; font-weight:700;">${formatMoney(item.interest)}</td>
-                      <td style="text-align:right; color:#EF4444; font-family: Pretendard, monospace; font-weight:800; font-size:14px;">${formatMoney(item.total)}</td>
-                      <td style="text-align:right; color:#94A3B8; font-family: Pretendard, monospace;">${formatMoney(item.remainingBalance)}</td>
-                    </tr>
-                  `).join('')}
+                  ${schedule5Years.map(item => {
+                    let statusBadge = '';
+                    if (item.principal === 0) {
+                      statusBadge = `<span style="color:#FBBF24; font-size:11px; background:rgba(251,191,36,0.15); padding:4px 10px; border-radius:6px; font-weight:800; border:1px solid rgba(251,191,36,0.3);">🟡 전액 거치 (원금 0원 / 이자만 납입)</span>`;
+                    } else if (item.graceCount > 0) {
+                      statusBadge = `<span style="color:#60A5FA; font-size:11px; background:rgba(96,165,250,0.15); padding:4px 10px; border-radius:6px; font-weight:800; border:1px solid rgba(96,165,250,0.3);">🔵 혼합상환 (원금 ${formatShortMoney(item.principal)} + 일부 거치)</span>`;
+                    } else {
+                      statusBadge = `<span style="color:#34D399; font-size:11px; background:rgba(52,211,153,0.15); padding:4px 10px; border-radius:6px; font-weight:800; border:1px solid rgba(52,211,153,0.3);">🟢 원리금 상환 진행 (원금 + 이자 납입)</span>`;
+                    }
+
+                    return `
+                      <tr>
+                        <td style="font-weight:800; color:#FFF;">${item.year}년 차</td>
+                        <td>${statusBadge}</td>
+                        <td style="text-align:right; font-family: Pretendard, monospace; font-weight:700; color:${item.principal === 0 ? '#94A3B8' : '#FFF'};">
+                          ${item.principal === 0 ? '0 원 (원금 유예)' : formatMoney(item.principal)}
+                        </td>
+                        <td style="text-align:right; color:#FBBF24; font-family: Pretendard, monospace; font-weight:700;">${formatMoney(item.interest)}</td>
+                        <td style="text-align:right; color:#EF4444; font-family: Pretendard, monospace; font-weight:800; font-size:14px;">${formatMoney(item.total)}</td>
+                        <td style="text-align:right; color:#94A3B8; font-family: Pretendard, monospace;">${formatMoney(item.remainingBalance)}</td>
+                      </tr>
+                    `;
+                  }).join('')}
                 </tbody>
               </table>
             </div>
@@ -753,7 +756,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       renderForm();
     });
 
-    // Auto sync ㎡ and 평 & auto apply RDA benchmark
     document.getElementById('ex-area-m2').addEventListener('change', (e) => {
       const m2 = parseNum(e.target.value);
       farmState.areaM2 = m2;
