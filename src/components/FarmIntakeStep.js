@@ -275,7 +275,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             📝 농가 경영체 정밀 데이터 입력 센터
           </h1>
           <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 880px;">
-            대출 원금 상환금은 경영비에서 제외되며, <b>순수 발생 대출이자(${formatMoney(year1InterestTotal)})가 변동비에 100% 자동 연동</b>됩니다.
+            성실하게 관리한 정확한 데이터는 내 농장의 현재와 미래를 결정합니다.
           </p>
         </div>
 
