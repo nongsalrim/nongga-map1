@@ -5,75 +5,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 2,
-    "yieldKg": 180765,
+    "yieldKg": 18000,
     "pricePerKg": 1800,
-    "revenue": 325377000,
-    "operatingExpenses": 104337873,
-    "income": 221039127,
-    "netProfit": 172410519,
+    "revenue": 32400000,
+    "operatingExpenses": 15800000,
+    "income": 16600000,
+    "netProfit": 12948000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 12520545,
+        "cost": 1896000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 8347030,
+        "cost": 1264000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 7303651,
+        "cost": 1106000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 5216894,
+        "cost": 790000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 11477166,
+        "cost": 1738000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 33388119,
+        "cost": 5056000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 15650681,
+        "cost": 2370000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 10433787,
+        "cost": 1580000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 406721250,
-        "yield": 216918,
+        "revenue": 40500000,
+        "yield": 21600,
         "price": 1980,
-        "expense": 93904086,
-        "income": 312817164
+        "expense": 14220000,
+        "income": 26280000
       },
       "avg": {
-        "revenue": 325377000,
-        "yield": 180765,
+        "revenue": 32400000,
+        "yield": 18000,
         "price": 1800,
-        "expense": 104337873,
-        "income": 221039127
+        "expense": 15800000,
+        "income": 16600000
       },
       "bottom20": {
-        "revenue": 234271440,
-        "yield": 135574,
+        "revenue": 23328000,
+        "yield": 13500,
         "price": 1584,
-        "expense": 119988554,
-        "income": 114282886
+        "expense": 18170000,
+        "income": 5158000
       }
     },
     "kamis": {
@@ -142,75 +142,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 2,
-    "yieldKg": 150000,
+    "yieldKg": 15000,
     "pricePerKg": 2400,
-    "revenue": 360000000,
-    "operatingExpenses": 115200000,
-    "income": 244800000,
-    "netProfit": 190944000,
+    "revenue": 36000000,
+    "operatingExpenses": 17500000,
+    "income": 18500000,
+    "netProfit": 14430000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 13824000,
+        "cost": 2100000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 9216000,
+        "cost": 1400000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 8064000,
+        "cost": 1225000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 5760000,
+        "cost": 875000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 12672000,
+        "cost": 1925000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 36864000,
+        "cost": 5600000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 17280000,
+        "cost": 2625000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 11520000,
+        "cost": 1750000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 450000000,
-        "yield": 180000,
+        "revenue": 45000000,
+        "yield": 18000,
         "price": 2640,
-        "expense": 103680000,
-        "income": 346320000
+        "expense": 15750000,
+        "income": 29250000
       },
       "avg": {
-        "revenue": 360000000,
-        "yield": 150000,
+        "revenue": 36000000,
+        "yield": 15000,
         "price": 2400,
-        "expense": 115200000,
-        "income": 244800000
+        "expense": 17500000,
+        "income": 18500000
       },
       "bottom20": {
-        "revenue": 259200000,
-        "yield": 112500,
+        "revenue": 25920000,
+        "yield": 11250,
         "price": 2112,
-        "expense": 132480000,
-        "income": 126720000
+        "expense": 20125000,
+        "income": 5795000
       }
     },
     "kamis": {
@@ -278,82 +278,82 @@ export const FULL_CROP_DATABASE = {
     "cropName": "시설딸기",
     "areaPyung": 1000,
     "areaM2": 3306,
-    "cycles": 2,
-    "yieldKg": 35000,
-    "pricePerKg": 9500,
-    "revenue": 332500000,
-    "operatingExpenses": 106400000,
-    "income": 226100000,
-    "netProfit": 176358000,
+    "cycles": 1,
+    "yieldKg": 10500,
+    "pricePerKg": 8500,
+    "revenue": 89250000,
+    "operatingExpenses": 41500000,
+    "income": 47750000,
+    "netProfit": 37245000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 12768000,
+        "cost": 4980000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 8512000,
+        "cost": 3320000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 7448000,
+        "cost": 2905000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 5320000,
+        "cost": 2075000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 11704000,
+        "cost": 4565000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 34048000,
+        "cost": 13280000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 15960000,
+        "cost": 6225000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 10640000,
+        "cost": 4150000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 415625000,
-        "yield": 42000,
-        "price": 10450,
-        "expense": 95760000,
-        "income": 319865000
+        "revenue": 111562500,
+        "yield": 12600,
+        "price": 9350,
+        "expense": 37350000,
+        "income": 74212500
       },
       "avg": {
-        "revenue": 332500000,
-        "yield": 35000,
-        "price": 9500,
-        "expense": 106400000,
-        "income": 226100000
+        "revenue": 89250000,
+        "yield": 10500,
+        "price": 8500,
+        "expense": 41500000,
+        "income": 47750000
       },
       "bottom20": {
-        "revenue": 239400000,
-        "yield": 26250,
-        "price": 8360,
-        "expense": 122360000,
-        "income": 117040000
+        "revenue": 64260000,
+        "yield": 7875,
+        "price": 7480,
+        "expense": 47725000,
+        "income": 16535000
       }
     },
     "kamis": {
-      "recentWholesalePrice": 9500,
-      "recentRetailPrice": 16625,
-      "avg5YearPrice": 8835,
+      "recentWholesalePrice": 8500,
+      "recentRetailPrice": 14875,
+      "avg5YearPrice": 7905,
       "farmReceiveShare": 54.2,
       "shippingCostShare": 7.5,
       "wholesaleStageShare": 11.8,
@@ -361,51 +361,51 @@ export const FULL_CROP_DATABASE = {
       "monthlyPriceTrends": [
         {
           "month": "1월",
-          "price": 10450
+          "price": 9350
         },
         {
           "month": "2월",
-          "price": 10925
+          "price": 9775
         },
         {
           "month": "3월",
-          "price": 9975
+          "price": 8925
         },
         {
           "month": "4월",
-          "price": 9025
-        },
-        {
-          "month": "5월",
-          "price": 8550
-        },
-        {
-          "month": "6월",
           "price": 8075
         },
         {
+          "month": "5월",
+          "price": 7650
+        },
+        {
+          "month": "6월",
+          "price": 7225
+        },
+        {
           "month": "7월",
-          "price": 8550
+          "price": 7650
         },
         {
           "month": "8월",
-          "price": 9025
+          "price": 8075
         },
         {
           "month": "9월",
-          "price": 9975
+          "price": 8925
         },
         {
           "month": "10월",
-          "price": 10450
+          "price": 9350
         },
         {
           "month": "11월",
-          "price": 9500
+          "price": 8500
         },
         {
           "month": "12월",
-          "price": 9975
+          "price": 8925
         }
       ]
     }
@@ -415,82 +415,82 @@ export const FULL_CROP_DATABASE = {
     "cropName": "시설딸기(수경)",
     "areaPyung": 1000,
     "areaM2": 3306,
-    "cycles": 2,
-    "yieldKg": 42000,
-    "pricePerKg": 9800,
-    "revenue": 411600000,
-    "operatingExpenses": 131712000,
-    "income": 279888000,
-    "netProfit": 218312640,
+    "cycles": 1,
+    "yieldKg": 13500,
+    "pricePerKg": 9000,
+    "revenue": 121500000,
+    "operatingExpenses": 55800000,
+    "income": 65700000,
+    "netProfit": 51246000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 15805440,
+        "cost": 6696000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 10536960,
+        "cost": 4464000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 9219840,
+        "cost": 3906000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 6585600,
+        "cost": 2790000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 14488320,
+        "cost": 6138000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 42147840,
+        "cost": 17856000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 19756800,
+        "cost": 8370000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 13171200,
+        "cost": 5580000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 514500000,
-        "yield": 50400,
-        "price": 10780,
-        "expense": 118540800,
-        "income": 395959200
+        "revenue": 151875000,
+        "yield": 16200,
+        "price": 9900,
+        "expense": 50220000,
+        "income": 101655000
       },
       "avg": {
-        "revenue": 411600000,
-        "yield": 42000,
-        "price": 9800,
-        "expense": 131712000,
-        "income": 279888000
+        "revenue": 121500000,
+        "yield": 13500,
+        "price": 9000,
+        "expense": 55800000,
+        "income": 65700000
       },
       "bottom20": {
-        "revenue": 296352000,
-        "yield": 31500,
-        "price": 8624,
-        "expense": 151468800,
-        "income": 144883200
+        "revenue": 87480000,
+        "yield": 10125,
+        "price": 7920,
+        "expense": 64170000,
+        "income": 23310000
       }
     },
     "kamis": {
-      "recentWholesalePrice": 9800,
-      "recentRetailPrice": 17150,
-      "avg5YearPrice": 9114,
+      "recentWholesalePrice": 9000,
+      "recentRetailPrice": 15750,
+      "avg5YearPrice": 8370,
       "farmReceiveShare": 54.2,
       "shippingCostShare": 7.5,
       "wholesaleStageShare": 11.8,
@@ -498,51 +498,51 @@ export const FULL_CROP_DATABASE = {
       "monthlyPriceTrends": [
         {
           "month": "1월",
-          "price": 10780
+          "price": 9900
         },
         {
           "month": "2월",
-          "price": 11270
+          "price": 10350
         },
         {
           "month": "3월",
-          "price": 10290
+          "price": 9450
         },
         {
           "month": "4월",
-          "price": 9310
+          "price": 8550
         },
         {
           "month": "5월",
-          "price": 8820
+          "price": 8100
         },
         {
           "month": "6월",
-          "price": 8330
+          "price": 7650
         },
         {
           "month": "7월",
-          "price": 8820
+          "price": 8100
         },
         {
           "month": "8월",
-          "price": 9310
+          "price": 8550
         },
         {
           "month": "9월",
-          "price": 10290
+          "price": 9450
         },
         {
           "month": "10월",
-          "price": 10780
+          "price": 9900
         },
         {
           "month": "11월",
-          "price": 9800
+          "price": 9000
         },
         {
           "month": "12월",
-          "price": 10290
+          "price": 9450
         }
       ]
     }
@@ -553,75 +553,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 2,
-    "yieldKg": 120000,
+    "yieldKg": 22000,
     "pricePerKg": 2200,
-    "revenue": 264000000,
-    "operatingExpenses": 84480000,
-    "income": 179520000,
-    "netProfit": 140025600,
+    "revenue": 48400000,
+    "operatingExpenses": 23000000,
+    "income": 25400000,
+    "netProfit": 19812000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 10137600,
+        "cost": 2760000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 6758400,
+        "cost": 1840000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 5913600,
+        "cost": 1610000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 4224000,
+        "cost": 1150000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 9292800,
+        "cost": 2530000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 27033600,
+        "cost": 7360000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 12672000,
+        "cost": 3450000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 8448000,
+        "cost": 2300000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 330000000,
-        "yield": 144000,
+        "revenue": 60500000,
+        "yield": 26400,
         "price": 2420,
-        "expense": 76032000,
-        "income": 253968000
+        "expense": 20700000,
+        "income": 39800000
       },
       "avg": {
-        "revenue": 264000000,
-        "yield": 120000,
+        "revenue": 48400000,
+        "yield": 22000,
         "price": 2200,
-        "expense": 84480000,
-        "income": 179520000
+        "expense": 23000000,
+        "income": 25400000
       },
       "bottom20": {
-        "revenue": 190080000,
-        "yield": 90000,
+        "revenue": 34848000,
+        "yield": 16500,
         "price": 1936,
-        "expense": 97152000,
-        "income": 92928000
+        "expense": 26450000,
+        "income": 8398000
       }
     },
     "kamis": {
@@ -690,75 +690,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 2,
-    "yieldKg": 110000,
+    "yieldKg": 20000,
     "pricePerKg": 2100,
-    "revenue": 231000000,
-    "operatingExpenses": 73920000,
-    "income": 157080000,
-    "netProfit": 122522400,
+    "revenue": 42000000,
+    "operatingExpenses": 20000000,
+    "income": 22000000,
+    "netProfit": 17160000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 8870400,
+        "cost": 2400000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 5913600,
+        "cost": 1600000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 5174400,
+        "cost": 1400000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 3696000,
+        "cost": 1000000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 8131200,
+        "cost": 2200000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 23654400,
+        "cost": 6400000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 11088000,
+        "cost": 3000000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 7392000,
+        "cost": 2000000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 288750000,
-        "yield": 132000,
+        "revenue": 52500000,
+        "yield": 24000,
         "price": 2310,
-        "expense": 66528000,
-        "income": 222222000
+        "expense": 18000000,
+        "income": 34500000
       },
       "avg": {
-        "revenue": 231000000,
-        "yield": 110000,
+        "revenue": 42000000,
+        "yield": 20000,
         "price": 2100,
-        "expense": 73920000,
-        "income": 157080000
+        "expense": 20000000,
+        "income": 22000000
       },
       "bottom20": {
-        "revenue": 166320000,
-        "yield": 82500,
+        "revenue": 30240000,
+        "yield": 15000,
         "price": 1848,
-        "expense": 85008000,
-        "income": 81312000
+        "expense": 23000000,
+        "income": 7240000
       }
     },
     "kamis": {
@@ -827,75 +827,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 2,
-    "yieldKg": 130000,
+    "yieldKg": 24000,
     "pricePerKg": 2800,
-    "revenue": 364000000,
-    "operatingExpenses": 116480000,
-    "income": 247520000,
-    "netProfit": 193065600,
+    "revenue": 67200000,
+    "operatingExpenses": 32000000,
+    "income": 35200000,
+    "netProfit": 27456000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 13977600,
+        "cost": 3840000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 9318400,
+        "cost": 2560000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 8153600,
+        "cost": 2240000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 5824000,
+        "cost": 1600000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 12812800,
+        "cost": 3520000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 37273600,
+        "cost": 10240000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 17472000,
+        "cost": 4800000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 11648000,
+        "cost": 3200000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 455000000,
-        "yield": 156000,
+        "revenue": 84000000,
+        "yield": 28800,
         "price": 3080,
-        "expense": 104832000,
-        "income": 350168000
+        "expense": 28800000,
+        "income": 55200000
       },
       "avg": {
-        "revenue": 364000000,
-        "yield": 130000,
+        "revenue": 67200000,
+        "yield": 24000,
         "price": 2800,
-        "expense": 116480000,
-        "income": 247520000
+        "expense": 32000000,
+        "income": 35200000
       },
       "bottom20": {
-        "revenue": 262080000,
-        "yield": 97500,
+        "revenue": 48384000,
+        "yield": 18000,
         "price": 2464,
-        "expense": 133952000,
-        "income": 128128000
+        "expense": 36800000,
+        "income": 11584000
       }
     },
     "kamis": {
@@ -964,75 +964,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 2,
-    "yieldKg": 75000,
+    "yieldKg": 16000,
     "pricePerKg": 4500,
-    "revenue": 337500000,
-    "operatingExpenses": 108000000,
-    "income": 229500000,
-    "netProfit": 179010000,
+    "revenue": 72000000,
+    "operatingExpenses": 35000000,
+    "income": 37000000,
+    "netProfit": 28860000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 12960000,
+        "cost": 4200000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 8640000,
+        "cost": 2800000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 7560000,
+        "cost": 2450000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 5400000,
+        "cost": 1750000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 11880000,
+        "cost": 3850000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 34560000,
+        "cost": 11200000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 16200000,
+        "cost": 5250000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 10800000,
+        "cost": 3500000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 421875000,
-        "yield": 90000,
+        "revenue": 90000000,
+        "yield": 19200,
         "price": 4950,
-        "expense": 97200000,
-        "income": 324675000
+        "expense": 31500000,
+        "income": 58500000
       },
       "avg": {
-        "revenue": 337500000,
-        "yield": 75000,
+        "revenue": 72000000,
+        "yield": 16000,
         "price": 4500,
-        "expense": 108000000,
-        "income": 229500000
+        "expense": 35000000,
+        "income": 37000000
       },
       "bottom20": {
-        "revenue": 243000000,
-        "yield": 56250,
+        "revenue": 51840000,
+        "yield": 12000,
         "price": 3960,
-        "expense": 124200000,
-        "income": 118800000
+        "expense": 40250000,
+        "income": 11590000
       }
     },
     "kamis": {
@@ -1101,75 +1101,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 2,
-    "yieldKg": 90000,
+    "yieldKg": 18000,
     "pricePerKg": 2600,
-    "revenue": 234000000,
-    "operatingExpenses": 74880000,
-    "income": 159120000,
-    "netProfit": 124113600,
+    "revenue": 46800000,
+    "operatingExpenses": 22000000,
+    "income": 24800000,
+    "netProfit": 19344000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 8985600,
+        "cost": 2640000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 5990400,
+        "cost": 1760000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 5241600,
+        "cost": 1540000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 3744000,
+        "cost": 1100000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 8236800,
+        "cost": 2420000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 23961600,
+        "cost": 7040000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 11232000,
+        "cost": 3300000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 7488000,
+        "cost": 2200000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 292500000,
-        "yield": 108000,
+        "revenue": 58500000,
+        "yield": 21600,
         "price": 2860,
-        "expense": 67392000,
-        "income": 225108000
+        "expense": 19800000,
+        "income": 38700000
       },
       "avg": {
-        "revenue": 234000000,
-        "yield": 90000,
+        "revenue": 46800000,
+        "yield": 18000,
         "price": 2600,
-        "expense": 74880000,
-        "income": 159120000
+        "expense": 22000000,
+        "income": 24800000
       },
       "bottom20": {
-        "revenue": 168480000,
-        "yield": 67500,
+        "revenue": 33696000,
+        "yield": 13500,
         "price": 2288,
-        "expense": 86112000,
-        "income": 82368000
+        "expense": 25300000,
+        "income": 8396000
       }
     },
     "kamis": {
@@ -1237,76 +1237,76 @@ export const FULL_CROP_DATABASE = {
     "cropName": "시설파프리카",
     "areaPyung": 1000,
     "areaM2": 3306,
-    "cycles": 2,
-    "yieldKg": 85000,
+    "cycles": 1,
+    "yieldKg": 22000,
     "pricePerKg": 4800,
-    "revenue": 408000000,
-    "operatingExpenses": 142800000,
-    "income": 265200000,
-    "netProfit": 206856000,
+    "revenue": 105600000,
+    "operatingExpenses": 58000000,
+    "income": 47600000,
+    "netProfit": 37128000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 17136000,
+        "cost": 6960000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 11424000,
+        "cost": 4640000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 9996000,
+        "cost": 4060000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 7140000,
+        "cost": 2900000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 15708000,
+        "cost": 6380000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 45696000,
+        "cost": 18560000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 21420000,
+        "cost": 8700000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 14280000,
+        "cost": 5800000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 510000000,
-        "yield": 102000,
+        "revenue": 132000000,
+        "yield": 26400,
         "price": 5280,
-        "expense": 128520000,
-        "income": 381480000
+        "expense": 52200000,
+        "income": 79800000
       },
       "avg": {
-        "revenue": 408000000,
-        "yield": 85000,
+        "revenue": 105600000,
+        "yield": 22000,
         "price": 4800,
-        "expense": 142800000,
-        "income": 265200000
+        "expense": 58000000,
+        "income": 47600000
       },
       "bottom20": {
-        "revenue": 293760000,
-        "yield": 63750,
+        "revenue": 76032000,
+        "yield": 16500,
         "price": 4224,
-        "expense": 164220000,
-        "income": 129540000
+        "expense": 66700000,
+        "income": 9332000
       }
     },
     "kamis": {
@@ -1374,76 +1374,76 @@ export const FULL_CROP_DATABASE = {
     "cropName": "시설상추",
     "areaPyung": 1000,
     "areaM2": 3306,
-    "cycles": 2,
-    "yieldKg": 45000,
+    "cycles": 3,
+    "yieldKg": 12000,
     "pricePerKg": 5200,
-    "revenue": 234000000,
-    "operatingExpenses": 74880000,
-    "income": 159120000,
-    "netProfit": 124113600,
+    "revenue": 62400000,
+    "operatingExpenses": 28000000,
+    "income": 34400000,
+    "netProfit": 26832000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 8985600,
+        "cost": 3360000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 5990400,
+        "cost": 2240000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 5241600,
+        "cost": 1960000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 3744000,
+        "cost": 1400000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 8236800,
+        "cost": 3080000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 23961600,
+        "cost": 8960000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 11232000,
+        "cost": 4200000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 7488000,
+        "cost": 2800000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 292500000,
-        "yield": 54000,
+        "revenue": 78000000,
+        "yield": 14400,
         "price": 5720,
-        "expense": 67392000,
-        "income": 225108000
+        "expense": 25200000,
+        "income": 52800000
       },
       "avg": {
-        "revenue": 234000000,
-        "yield": 45000,
+        "revenue": 62400000,
+        "yield": 12000,
         "price": 5200,
-        "expense": 74880000,
-        "income": 159120000
+        "expense": 28000000,
+        "income": 34400000
       },
       "bottom20": {
-        "revenue": 168480000,
-        "yield": 33750,
+        "revenue": 44928000,
+        "yield": 9000,
         "price": 4576,
-        "expense": 86112000,
-        "income": 82368000
+        "expense": 32200000,
+        "income": 12728000
       }
     },
     "kamis": {
@@ -1512,75 +1512,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 2,
-    "yieldKg": 60000,
+    "yieldKg": 14000,
     "pricePerKg": 4200,
-    "revenue": 252000000,
-    "operatingExpenses": 80640000,
-    "income": 171360000,
-    "netProfit": 133660800,
+    "revenue": 58800000,
+    "operatingExpenses": 27000000,
+    "income": 31800000,
+    "netProfit": 24804000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 9676800,
+        "cost": 3240000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 6451200,
+        "cost": 2160000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 5644800,
+        "cost": 1890000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 4032000,
+        "cost": 1350000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 8870400,
+        "cost": 2970000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 25804800,
+        "cost": 8640000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 12096000,
+        "cost": 4050000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 8064000,
+        "cost": 2700000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 315000000,
-        "yield": 72000,
+        "revenue": 73500000,
+        "yield": 16800,
         "price": 4620,
-        "expense": 72576000,
-        "income": 242424000
+        "expense": 24300000,
+        "income": 49200000
       },
       "avg": {
-        "revenue": 252000000,
-        "yield": 60000,
+        "revenue": 58800000,
+        "yield": 14000,
         "price": 4200,
-        "expense": 80640000,
-        "income": 171360000
+        "expense": 27000000,
+        "income": 31800000
       },
       "bottom20": {
-        "revenue": 181440000,
-        "yield": 45000,
+        "revenue": 42336000,
+        "yield": 10500,
         "price": 3696,
-        "expense": 92736000,
-        "income": 88704000
+        "expense": 31050000,
+        "income": 11286000
       }
     },
     "kamis": {
@@ -1649,75 +1649,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 2,
-    "yieldKg": 55000,
+    "yieldKg": 11000,
     "pricePerKg": 3800,
-    "revenue": 209000000,
-    "operatingExpenses": 66880000,
-    "income": 142120000,
-    "netProfit": 110853600,
+    "revenue": 41800000,
+    "operatingExpenses": 20000000,
+    "income": 21800000,
+    "netProfit": 17004000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 8025600,
+        "cost": 2400000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 5350400,
+        "cost": 1600000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 4681600,
+        "cost": 1400000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 3344000,
+        "cost": 1000000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 7356800,
+        "cost": 2200000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 21401600,
+        "cost": 6400000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 10032000,
+        "cost": 3000000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 6688000,
+        "cost": 2000000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 261250000,
-        "yield": 66000,
+        "revenue": 52250000,
+        "yield": 13200,
         "price": 4180,
-        "expense": 60192000,
-        "income": 201058000
+        "expense": 18000000,
+        "income": 34250000
       },
       "avg": {
-        "revenue": 209000000,
-        "yield": 55000,
+        "revenue": 41800000,
+        "yield": 11000,
         "price": 3800,
-        "expense": 66880000,
-        "income": 142120000
+        "expense": 20000000,
+        "income": 21800000
       },
       "bottom20": {
-        "revenue": 150480000,
-        "yield": 41250,
+        "revenue": 30096000,
+        "yield": 8250,
         "price": 3344,
-        "expense": 76912000,
-        "income": 73568000
+        "expense": 23000000,
+        "income": 7096000
       }
     },
     "kamis": {
@@ -1785,76 +1785,76 @@ export const FULL_CROP_DATABASE = {
     "cropName": "시설부추",
     "areaPyung": 1000,
     "areaM2": 3306,
-    "cycles": 2,
-    "yieldKg": 50000,
+    "cycles": 3,
+    "yieldKg": 10000,
     "pricePerKg": 4100,
-    "revenue": 205000000,
-    "operatingExpenses": 65600000,
-    "income": 139400000,
-    "netProfit": 108732000,
+    "revenue": 41000000,
+    "operatingExpenses": 19000000,
+    "income": 22000000,
+    "netProfit": 17160000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 7872000,
+        "cost": 2280000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 5248000,
+        "cost": 1520000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 4592000,
+        "cost": 1330000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 3280000,
+        "cost": 950000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 7216000,
+        "cost": 2090000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 20992000,
+        "cost": 6080000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 9840000,
+        "cost": 2850000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 6560000,
+        "cost": 1900000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 256250000,
-        "yield": 60000,
+        "revenue": 51250000,
+        "yield": 12000,
         "price": 4510,
-        "expense": 59040000,
-        "income": 197210000
+        "expense": 17100000,
+        "income": 34150000
       },
       "avg": {
-        "revenue": 205000000,
-        "yield": 50000,
+        "revenue": 41000000,
+        "yield": 10000,
         "price": 4100,
-        "expense": 65600000,
-        "income": 139400000
+        "expense": 19000000,
+        "income": 22000000
       },
       "bottom20": {
-        "revenue": 147600000,
-        "yield": 37500,
+        "revenue": 29520000,
+        "yield": 7500,
         "price": 3608,
-        "expense": 75440000,
-        "income": 72160000
+        "expense": 21850000,
+        "income": 7670000
       }
     },
     "kamis": {
@@ -1922,76 +1922,76 @@ export const FULL_CROP_DATABASE = {
     "cropName": "시설시금치",
     "areaPyung": 1000,
     "areaM2": 3306,
-    "cycles": 2,
-    "yieldKg": 30000,
+    "cycles": 3,
+    "yieldKg": 8000,
     "pricePerKg": 5500,
-    "revenue": 165000000,
-    "operatingExpenses": 52800000,
-    "income": 112200000,
-    "netProfit": 87516000,
+    "revenue": 44000000,
+    "operatingExpenses": 21000000,
+    "income": 23000000,
+    "netProfit": 17940000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 6336000,
+        "cost": 2520000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 4224000,
+        "cost": 1680000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 3696000,
+        "cost": 1470000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 2640000,
+        "cost": 1050000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 5808000,
+        "cost": 2310000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 16896000,
+        "cost": 6720000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 7920000,
+        "cost": 3150000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 5280000,
+        "cost": 2100000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 206250000,
-        "yield": 36000,
+        "revenue": 55000000,
+        "yield": 9600,
         "price": 6050,
-        "expense": 47520000,
-        "income": 158730000
+        "expense": 18900000,
+        "income": 36100000
       },
       "avg": {
-        "revenue": 165000000,
-        "yield": 30000,
+        "revenue": 44000000,
+        "yield": 8000,
         "price": 5500,
-        "expense": 52800000,
-        "income": 112200000
+        "expense": 21000000,
+        "income": 23000000
       },
       "bottom20": {
-        "revenue": 118800000,
-        "yield": 22500,
+        "revenue": 31680000,
+        "yield": 6000,
         "price": 4840,
-        "expense": 60720000,
-        "income": 58080000
+        "expense": 24150000,
+        "income": 7530000
       }
     },
     "kamis": {
@@ -2060,75 +2060,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 120000,
+    "yieldKg": 12000,
     "pricePerKg": 1400,
-    "revenue": 168000000,
-    "operatingExpenses": 58800000,
-    "income": 109200000,
-    "netProfit": 85176000,
+    "revenue": 16800000,
+    "operatingExpenses": 8800000,
+    "income": 8000000,
+    "netProfit": 6240000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 5880000,
+        "cost": 880000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 8820000,
+        "cost": 1320000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 5880000,
+        "cost": 880000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 4704000,
+        "cost": 704000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 7056000,
+        "cost": 1056000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 11760000,
+        "cost": 1760000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 8820000,
+        "cost": 1320000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 5880000,
+        "cost": 880000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 210000000,
-        "yield": 144000,
+        "revenue": 21000000,
+        "yield": 14400,
         "price": 1540,
-        "expense": 52920000,
-        "income": 157080000
+        "expense": 7920000,
+        "income": 13080000
       },
       "avg": {
-        "revenue": 168000000,
-        "yield": 120000,
+        "revenue": 16800000,
+        "yield": 12000,
         "price": 1400,
-        "expense": 58800000,
-        "income": 109200000
+        "expense": 8800000,
+        "income": 8000000
       },
       "bottom20": {
-        "revenue": 120960000,
-        "yield": 90000,
+        "revenue": 12096000,
+        "yield": 9000,
         "price": 1232,
-        "expense": 67620000,
-        "income": 53340000
+        "expense": 10120000,
+        "income": 1976000
       }
     },
     "kamis": {
@@ -2197,75 +2197,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 18000,
+    "yieldKg": 2800,
     "pricePerKg": 14000,
-    "revenue": 252000000,
-    "operatingExpenses": 88200000,
-    "income": 163800000,
-    "netProfit": 127764000,
+    "revenue": 39200000,
+    "operatingExpenses": 18200000,
+    "income": 21000000,
+    "netProfit": 16380000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 8820000,
+        "cost": 1820000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 13230000,
+        "cost": 2730000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 8820000,
+        "cost": 1820000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 7056000,
+        "cost": 1456000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 10584000,
+        "cost": 2184000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 17640000,
+        "cost": 3640000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 13230000,
+        "cost": 2730000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 8820000,
+        "cost": 1820000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 315000000,
-        "yield": 21600,
+        "revenue": 49000000,
+        "yield": 3360,
         "price": 15400,
-        "expense": 79380000,
-        "income": 235620000
+        "expense": 16380000,
+        "income": 32620000
       },
       "avg": {
-        "revenue": 252000000,
-        "yield": 18000,
+        "revenue": 39200000,
+        "yield": 2800,
         "price": 14000,
-        "expense": 88200000,
-        "income": 163800000
+        "expense": 18200000,
+        "income": 21000000
       },
       "bottom20": {
-        "revenue": 181440000,
-        "yield": 13500,
+        "revenue": 28224000,
+        "yield": 2100,
         "price": 12320,
-        "expense": 101430000,
-        "income": 80010000
+        "expense": 20930000,
+        "income": 7294000
       }
     },
     "kamis": {
@@ -2334,75 +2334,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 25000,
+    "yieldKg": 4500,
     "pricePerKg": 6800,
-    "revenue": 170000000,
-    "operatingExpenses": 59500000,
-    "income": 110500000,
-    "netProfit": 86190000,
+    "revenue": 30600000,
+    "operatingExpenses": 15500000,
+    "income": 15100000,
+    "netProfit": 11778000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 5950000,
+        "cost": 1550000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 8925000,
+        "cost": 2325000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 5950000,
+        "cost": 1550000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 4760000,
+        "cost": 1240000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 7140000,
+        "cost": 1860000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 11900000,
+        "cost": 3100000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 8925000,
+        "cost": 2325000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 5950000,
+        "cost": 1550000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 212500000,
-        "yield": 30000,
+        "revenue": 38250000,
+        "yield": 5400,
         "price": 7480,
-        "expense": 53550000,
-        "income": 158950000
+        "expense": 13950000,
+        "income": 24300000
       },
       "avg": {
-        "revenue": 170000000,
-        "yield": 25000,
+        "revenue": 30600000,
+        "yield": 4500,
         "price": 6800,
-        "expense": 59500000,
-        "income": 110500000
+        "expense": 15500000,
+        "income": 15100000
       },
       "bottom20": {
-        "revenue": 122400000,
-        "yield": 18750,
+        "revenue": 22032000,
+        "yield": 3375,
         "price": 5984,
-        "expense": 68425000,
-        "income": 53975000
+        "expense": 17825000,
+        "income": 4207000
       }
     },
     "kamis": {
@@ -2471,75 +2471,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 40000,
+    "yieldKg": 22000,
     "pricePerKg": 1300,
-    "revenue": 52000000,
-    "operatingExpenses": 20800000,
-    "income": 31200000,
-    "netProfit": 24336000,
+    "revenue": 28600000,
+    "operatingExpenses": 14800000,
+    "income": 13800000,
+    "netProfit": 10764000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 2080000,
+        "cost": 1480000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 3120000,
+        "cost": 2220000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 2080000,
+        "cost": 1480000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 1664000,
+        "cost": 1184000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 2496000,
+        "cost": 1776000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 4160000,
+        "cost": 2960000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 3120000,
+        "cost": 2220000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 2080000,
+        "cost": 1480000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 65000000,
-        "yield": 48000,
+        "revenue": 35750000,
+        "yield": 26400,
         "price": 1430,
-        "expense": 18720000,
-        "income": 46280000
+        "expense": 13320000,
+        "income": 22430000
       },
       "avg": {
-        "revenue": 52000000,
-        "yield": 40000,
+        "revenue": 28600000,
+        "yield": 22000,
         "price": 1300,
-        "expense": 20800000,
-        "income": 31200000
+        "expense": 14800000,
+        "income": 13800000
       },
       "bottom20": {
-        "revenue": 37440000,
-        "yield": 30000,
+        "revenue": 20592000,
+        "yield": 16500,
         "price": 1144,
-        "expense": 23920000,
-        "income": 13520000
+        "expense": 17020000,
+        "income": 3572000
       }
     },
     "kamis": {
@@ -2608,75 +2608,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 35000,
+    "yieldKg": 15000,
     "pricePerKg": 2100,
-    "revenue": 73500000,
-    "operatingExpenses": 29400000,
-    "income": 44100000,
-    "netProfit": 34398000,
+    "revenue": 31500000,
+    "operatingExpenses": 15400000,
+    "income": 16100000,
+    "netProfit": 12558000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 2940000,
+        "cost": 1540000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 4410000,
+        "cost": 2310000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 2940000,
+        "cost": 1540000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 2352000,
+        "cost": 1232000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 3528000,
+        "cost": 1848000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 5880000,
+        "cost": 3080000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 4410000,
+        "cost": 2310000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 2940000,
+        "cost": 1540000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 91875000,
-        "yield": 42000,
+        "revenue": 39375000,
+        "yield": 18000,
         "price": 2310,
-        "expense": 26460000,
-        "income": 65415000
+        "expense": 13860000,
+        "income": 25515000
       },
       "avg": {
-        "revenue": 73500000,
-        "yield": 35000,
+        "revenue": 31500000,
+        "yield": 15000,
         "price": 2100,
-        "expense": 29400000,
-        "income": 44100000
+        "expense": 15400000,
+        "income": 16100000
       },
       "bottom20": {
-        "revenue": 52920000,
-        "yield": 26250,
+        "revenue": 22680000,
+        "yield": 11250,
         "price": 1848,
-        "expense": 33810000,
-        "income": 19110000
+        "expense": 17710000,
+        "income": 4970000
       }
     },
     "kamis": {
@@ -2745,75 +2745,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 20000,
+    "yieldKg": 8000,
     "pricePerKg": 3800,
-    "revenue": 76000000,
-    "operatingExpenses": 26600000,
-    "income": 49400000,
-    "netProfit": 38532000,
+    "revenue": 30400000,
+    "operatingExpenses": 14600000,
+    "income": 15800000,
+    "netProfit": 12324000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 2660000,
+        "cost": 1460000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 3990000,
+        "cost": 2190000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 2660000,
+        "cost": 1460000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 2128000,
+        "cost": 1168000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 3192000,
+        "cost": 1752000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 5320000,
+        "cost": 2920000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 3990000,
+        "cost": 2190000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 2660000,
+        "cost": 1460000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 95000000,
-        "yield": 24000,
+        "revenue": 38000000,
+        "yield": 9600,
         "price": 4180,
-        "expense": 23940000,
-        "income": 71060000
+        "expense": 13140000,
+        "income": 24860000
       },
       "avg": {
-        "revenue": 76000000,
-        "yield": 20000,
+        "revenue": 30400000,
+        "yield": 8000,
         "price": 3800,
-        "expense": 26600000,
-        "income": 49400000
+        "expense": 14600000,
+        "income": 15800000
       },
       "bottom20": {
-        "revenue": 54720000,
-        "yield": 15000,
+        "revenue": 21888000,
+        "yield": 6000,
         "price": 3344,
-        "expense": 30590000,
-        "income": 24130000
+        "expense": 16790000,
+        "income": 5098000
       }
     },
     "kamis": {
@@ -2882,75 +2882,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 45000,
+    "yieldKg": 18000,
     "pricePerKg": 1100,
-    "revenue": 49500000,
-    "operatingExpenses": 19800000,
-    "income": 29700000,
-    "netProfit": 23166000,
+    "revenue": 19800000,
+    "operatingExpenses": 9800000,
+    "income": 10000000,
+    "netProfit": 7800000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 1980000,
+        "cost": 980000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 2970000,
+        "cost": 1470000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 1980000,
+        "cost": 980000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 1584000,
+        "cost": 784000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 2376000,
+        "cost": 1176000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 3960000,
+        "cost": 1960000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 2970000,
+        "cost": 1470000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 1980000,
+        "cost": 980000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 61875000,
-        "yield": 54000,
+        "revenue": 24750000,
+        "yield": 21600,
         "price": 1210,
-        "expense": 17820000,
-        "income": 44055000
+        "expense": 8820000,
+        "income": 15930000
       },
       "avg": {
-        "revenue": 49500000,
-        "yield": 45000,
+        "revenue": 19800000,
+        "yield": 18000,
         "price": 1100,
-        "expense": 19800000,
-        "income": 29700000
+        "expense": 9800000,
+        "income": 10000000
       },
       "bottom20": {
-        "revenue": 35640000,
-        "yield": 33750,
+        "revenue": 14256000,
+        "yield": 13500,
         "price": 968,
-        "expense": 22770000,
-        "income": 12870000
+        "expense": 11270000,
+        "income": 2986000
       }
     },
     "kamis": {
@@ -3019,75 +3019,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 50000,
+    "yieldKg": 20000,
     "pricePerKg": 1200,
-    "revenue": 60000000,
-    "operatingExpenses": 24000000,
-    "income": 36000000,
-    "netProfit": 28080000,
+    "revenue": 24000000,
+    "operatingExpenses": 11000000,
+    "income": 13000000,
+    "netProfit": 10140000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 2400000,
+        "cost": 1100000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 3600000,
+        "cost": 1650000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 2400000,
+        "cost": 1100000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 1920000,
+        "cost": 880000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 2880000,
+        "cost": 1320000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 4800000,
+        "cost": 2200000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 3600000,
+        "cost": 1650000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 2400000,
+        "cost": 1100000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 75000000,
-        "yield": 60000,
+        "revenue": 30000000,
+        "yield": 24000,
         "price": 1320,
-        "expense": 21600000,
-        "income": 53400000
+        "expense": 9900000,
+        "income": 20100000
       },
       "avg": {
-        "revenue": 60000000,
-        "yield": 50000,
+        "revenue": 24000000,
+        "yield": 20000,
         "price": 1200,
-        "expense": 24000000,
-        "income": 36000000
+        "expense": 11000000,
+        "income": 13000000
       },
       "bottom20": {
-        "revenue": 43200000,
-        "yield": 37500,
+        "revenue": 17280000,
+        "yield": 15000,
         "price": 1056,
-        "expense": 27600000,
-        "income": 15600000
+        "expense": 12650000,
+        "income": 4630000
       }
     },
     "kamis": {
@@ -3156,75 +3156,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 55000,
+    "yieldKg": 22000,
     "pricePerKg": 950,
-    "revenue": 52250000,
-    "operatingExpenses": 20900000,
-    "income": 31350000,
-    "netProfit": 24453000,
+    "revenue": 20900000,
+    "operatingExpenses": 9900000,
+    "income": 11000000,
+    "netProfit": 8580000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 2090000,
+        "cost": 990000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 3135000,
+        "cost": 1485000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 2090000,
+        "cost": 990000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 1672000,
+        "cost": 792000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 2508000,
+        "cost": 1188000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 4180000,
+        "cost": 1980000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 3135000,
+        "cost": 1485000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 2090000,
+        "cost": 990000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 65312500,
-        "yield": 66000,
+        "revenue": 26125000,
+        "yield": 26400,
         "price": 1045,
-        "expense": 18810000,
-        "income": 46502500
+        "expense": 8910000,
+        "income": 17215000
       },
       "avg": {
-        "revenue": 52250000,
-        "yield": 55000,
+        "revenue": 20900000,
+        "yield": 22000,
         "price": 950,
-        "expense": 20900000,
-        "income": 31350000
+        "expense": 9900000,
+        "income": 11000000
       },
       "bottom20": {
-        "revenue": 37620000,
-        "yield": 41250,
+        "revenue": 15048000,
+        "yield": 16500,
         "price": 836,
-        "expense": 24035000,
-        "income": 13585000
+        "expense": 11385000,
+        "income": 3663000
       }
     },
     "kamis": {
@@ -3293,75 +3293,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 30000,
+    "yieldKg": 12000,
     "pricePerKg": 2200,
-    "revenue": 66000000,
-    "operatingExpenses": 23100000,
-    "income": 42900000,
-    "netProfit": 33462000,
+    "revenue": 26400000,
+    "operatingExpenses": 12100000,
+    "income": 14300000,
+    "netProfit": 11154000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 2310000,
+        "cost": 1210000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 3465000,
+        "cost": 1815000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 2310000,
+        "cost": 1210000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 1848000,
+        "cost": 968000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 2772000,
+        "cost": 1452000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 4620000,
+        "cost": 2420000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 3465000,
+        "cost": 1815000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 2310000,
+        "cost": 1210000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 82500000,
-        "yield": 36000,
+        "revenue": 33000000,
+        "yield": 14400,
         "price": 2420,
-        "expense": 20790000,
-        "income": 61710000
+        "expense": 10890000,
+        "income": 22110000
       },
       "avg": {
-        "revenue": 66000000,
-        "yield": 30000,
+        "revenue": 26400000,
+        "yield": 12000,
         "price": 2200,
-        "expense": 23100000,
-        "income": 42900000
+        "expense": 12100000,
+        "income": 14300000
       },
       "bottom20": {
-        "revenue": 47520000,
-        "yield": 22500,
+        "revenue": 19008000,
+        "yield": 9000,
         "price": 1936,
-        "expense": 26565000,
-        "income": 20955000
+        "expense": 13915000,
+        "income": 5093000
       }
     },
     "kamis": {
@@ -3430,75 +3430,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 15000,
+    "yieldKg": 5000,
     "pricePerKg": 7200,
-    "revenue": 108000000,
-    "operatingExpenses": 37800000,
-    "income": 70200000,
-    "netProfit": 54756000,
+    "revenue": 36000000,
+    "operatingExpenses": 16800000,
+    "income": 19200000,
+    "netProfit": 14976000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 3780000,
+        "cost": 1680000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 5670000,
+        "cost": 2520000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 3780000,
+        "cost": 1680000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 3024000,
+        "cost": 1344000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 4536000,
+        "cost": 2016000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 7560000,
+        "cost": 3360000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 5670000,
+        "cost": 2520000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 3780000,
+        "cost": 1680000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 135000000,
-        "yield": 18000,
+        "revenue": 45000000,
+        "yield": 6000,
         "price": 7920,
-        "expense": 34020000,
-        "income": 100980000
+        "expense": 15120000,
+        "income": 29880000
       },
       "avg": {
-        "revenue": 108000000,
-        "yield": 15000,
+        "revenue": 36000000,
+        "yield": 5000,
         "price": 7200,
-        "expense": 37800000,
-        "income": 70200000
+        "expense": 16800000,
+        "income": 19200000
       },
       "bottom20": {
-        "revenue": 77760000,
-        "yield": 11250,
+        "revenue": 25920000,
+        "yield": 3750,
         "price": 6336,
-        "expense": 43470000,
-        "income": 34290000
+        "expense": 19320000,
+        "income": 6600000
       }
     },
     "kamis": {
@@ -3567,75 +3567,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 40000,
+    "yieldKg": 18000,
     "pricePerKg": 1100,
-    "revenue": 44000000,
-    "operatingExpenses": 17600000,
-    "income": 26400000,
-    "netProfit": 20592000,
+    "revenue": 19800000,
+    "operatingExpenses": 9600000,
+    "income": 10200000,
+    "netProfit": 7956000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 1760000,
+        "cost": 960000,
         "percent": 10
       },
       {
         "name": "보통비료비",
-        "cost": 2640000,
+        "cost": 1440000,
         "percent": 15
       },
       {
         "name": "부산물비료비",
-        "cost": 1760000,
+        "cost": 960000,
         "percent": 10
       },
       {
         "name": "농약비",
-        "cost": 1408000,
+        "cost": 768000,
         "percent": 8
       },
       {
         "name": "자동차비",
-        "cost": 2112000,
+        "cost": 1152000,
         "percent": 12
       },
       {
         "name": "기타재료비",
-        "cost": 3520000,
+        "cost": 1920000,
         "percent": 20
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 2640000,
+        "cost": 1440000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 1760000,
+        "cost": 960000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 55000000,
-        "yield": 48000,
+        "revenue": 24750000,
+        "yield": 21600,
         "price": 1210,
-        "expense": 15840000,
-        "income": 39160000
+        "expense": 8640000,
+        "income": 16110000
       },
       "avg": {
-        "revenue": 44000000,
-        "yield": 40000,
+        "revenue": 19800000,
+        "yield": 18000,
         "price": 1100,
-        "expense": 17600000,
-        "income": 26400000
+        "expense": 9600000,
+        "income": 10200000
       },
       "bottom20": {
-        "revenue": 31680000,
-        "yield": 30000,
+        "revenue": 14256000,
+        "yield": 13500,
         "price": 968,
-        "expense": 20240000,
-        "income": 11440000
+        "expense": 11040000,
+        "income": 3216000
       }
     },
     "kamis": {
@@ -6169,76 +6169,76 @@ export const FULL_CROP_DATABASE = {
     "cropName": "장미(시설)",
     "areaPyung": 1000,
     "areaM2": 3306,
-    "cycles": 1,
-    "yieldKg": 120000,
+    "cycles": 2,
+    "yieldKg": 35000,
     "pricePerKg": 1200,
-    "revenue": 144000000,
-    "operatingExpenses": 57600000,
-    "income": 86400000,
-    "netProfit": 67392000,
+    "revenue": 42000000,
+    "operatingExpenses": 21000000,
+    "income": 21000000,
+    "netProfit": 16380000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 6912000,
+        "cost": 2520000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 4608000,
+        "cost": 1680000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 4032000,
+        "cost": 1470000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 2880000,
+        "cost": 1050000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 6336000,
+        "cost": 2310000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 18432000,
+        "cost": 6720000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 8640000,
+        "cost": 3150000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 5760000,
+        "cost": 2100000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 180000000,
-        "yield": 144000,
+        "revenue": 52500000,
+        "yield": 42000,
         "price": 1320,
-        "expense": 51840000,
-        "income": 128160000
+        "expense": 18900000,
+        "income": 33600000
       },
       "avg": {
-        "revenue": 144000000,
-        "yield": 120000,
+        "revenue": 42000000,
+        "yield": 35000,
         "price": 1200,
-        "expense": 57600000,
-        "income": 86400000
+        "expense": 21000000,
+        "income": 21000000
       },
       "bottom20": {
-        "revenue": 103680000,
-        "yield": 90000,
+        "revenue": 30240000,
+        "yield": 26250,
         "price": 1056,
-        "expense": 66240000,
-        "income": 37440000
+        "expense": 24150000,
+        "income": 6090000
       }
     },
     "kamis": {
@@ -6306,76 +6306,76 @@ export const FULL_CROP_DATABASE = {
     "cropName": "국화(시설)",
     "areaPyung": 1000,
     "areaM2": 3306,
-    "cycles": 1,
-    "yieldKg": 150000,
+    "cycles": 2,
+    "yieldKg": 45000,
     "pricePerKg": 650,
-    "revenue": 97500000,
-    "operatingExpenses": 39000000,
-    "income": 58500000,
-    "netProfit": 45630000,
+    "revenue": 29250000,
+    "operatingExpenses": 14625000,
+    "income": 14625000,
+    "netProfit": 11407500,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 4680000,
+        "cost": 1755000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 3120000,
+        "cost": 1170000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 2730000,
+        "cost": 1023750,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 1950000,
+        "cost": 731250,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 4290000,
+        "cost": 1608750,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 12480000,
+        "cost": 4680000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 5850000,
+        "cost": 2193750,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 3900000,
+        "cost": 1462500,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 121875000,
-        "yield": 180000,
+        "revenue": 36562500,
+        "yield": 54000,
         "price": 715,
-        "expense": 35100000,
-        "income": 86775000
+        "expense": 13162500,
+        "income": 23400000
       },
       "avg": {
-        "revenue": 97500000,
-        "yield": 150000,
+        "revenue": 29250000,
+        "yield": 45000,
         "price": 650,
-        "expense": 39000000,
-        "income": 58500000
+        "expense": 14625000,
+        "income": 14625000
       },
       "bottom20": {
-        "revenue": 70200000,
-        "yield": 112500,
+        "revenue": 21060000,
+        "yield": 33750,
         "price": 572,
-        "expense": 44850000,
-        "income": 25350000
+        "expense": 16818750,
+        "income": 4241250
       }
     },
     "kamis": {
@@ -6443,76 +6443,76 @@ export const FULL_CROP_DATABASE = {
     "cropName": "백합(시설)",
     "areaPyung": 1000,
     "areaM2": 3306,
-    "cycles": 1,
-    "yieldKg": 80000,
+    "cycles": 2,
+    "yieldKg": 25000,
     "pricePerKg": 1800,
-    "revenue": 144000000,
-    "operatingExpenses": 57600000,
-    "income": 86400000,
-    "netProfit": 67392000,
+    "revenue": 45000000,
+    "operatingExpenses": 22500000,
+    "income": 22500000,
+    "netProfit": 17550000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 6912000,
+        "cost": 2700000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 4608000,
+        "cost": 1800000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 4032000,
+        "cost": 1575000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 2880000,
+        "cost": 1125000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 6336000,
+        "cost": 2475000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 18432000,
+        "cost": 7200000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 8640000,
+        "cost": 3375000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 5760000,
+        "cost": 2250000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 180000000,
-        "yield": 96000,
+        "revenue": 56250000,
+        "yield": 30000,
         "price": 1980,
-        "expense": 51840000,
-        "income": 128160000
+        "expense": 20250000,
+        "income": 36000000
       },
       "avg": {
-        "revenue": 144000000,
-        "yield": 80000,
+        "revenue": 45000000,
+        "yield": 25000,
         "price": 1800,
-        "expense": 57600000,
-        "income": 86400000
+        "expense": 22500000,
+        "income": 22500000
       },
       "bottom20": {
-        "revenue": 103680000,
-        "yield": 60000,
+        "revenue": 32400000,
+        "yield": 18750,
         "price": 1584,
-        "expense": 66240000,
-        "income": 37440000
+        "expense": 25875000,
+        "income": 6525000
       }
     },
     "kamis": {
@@ -6581,75 +6581,75 @@ export const FULL_CROP_DATABASE = {
     "areaPyung": 1000,
     "areaM2": 3306,
     "cycles": 1,
-    "yieldKg": 25000,
+    "yieldKg": 8000,
     "pricePerKg": 9500,
-    "revenue": 237500000,
-    "operatingExpenses": 95000000,
-    "income": 142500000,
-    "netProfit": 111150000,
+    "revenue": 76000000,
+    "operatingExpenses": 38000000,
+    "income": 38000000,
+    "netProfit": 29640000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 11400000,
+        "cost": 4560000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 7600000,
+        "cost": 3040000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 6650000,
+        "cost": 2660000,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 4750000,
+        "cost": 1900000,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 10450000,
+        "cost": 4180000,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 30400000,
+        "cost": 12160000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 14250000,
+        "cost": 5700000,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 9500000,
+        "cost": 3800000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 296875000,
-        "yield": 30000,
+        "revenue": 95000000,
+        "yield": 9600,
         "price": 10450,
-        "expense": 85500000,
-        "income": 211375000
+        "expense": 34200000,
+        "income": 60800000
       },
       "avg": {
-        "revenue": 237500000,
-        "yield": 25000,
+        "revenue": 76000000,
+        "yield": 8000,
         "price": 9500,
-        "expense": 95000000,
-        "income": 142500000
+        "expense": 38000000,
+        "income": 38000000
       },
       "bottom20": {
-        "revenue": 171000000,
-        "yield": 18750,
+        "revenue": 54720000,
+        "yield": 6000,
         "price": 8360,
-        "expense": 109250000,
-        "income": 61750000
+        "expense": 43700000,
+        "income": 11020000
       }
     },
     "kamis": {
@@ -6717,76 +6717,76 @@ export const FULL_CROP_DATABASE = {
     "cropName": "카네이션(시설)",
     "areaPyung": 1000,
     "areaM2": 3306,
-    "cycles": 1,
-    "yieldKg": 90000,
+    "cycles": 2,
+    "yieldKg": 30000,
     "pricePerKg": 950,
-    "revenue": 85500000,
-    "operatingExpenses": 34200000,
-    "income": 51300000,
-    "netProfit": 40014000,
+    "revenue": 28500000,
+    "operatingExpenses": 14250000,
+    "income": 14250000,
+    "netProfit": 11115000,
     "costBreakdown": [
       {
         "name": "종자/종묘비",
-        "cost": 4104000,
+        "cost": 1710000,
         "percent": 12
       },
       {
         "name": "보통비료비",
-        "cost": 2736000,
+        "cost": 1140000,
         "percent": 8
       },
       {
         "name": "부산물비료비",
-        "cost": 2394000,
+        "cost": 997500,
         "percent": 7
       },
       {
         "name": "농약비",
-        "cost": 1710000,
+        "cost": 712500,
         "percent": 5
       },
       {
         "name": "자동차비",
-        "cost": 3762000,
+        "cost": 1567500,
         "percent": 11
       },
       {
         "name": "기타재료비",
-        "cost": 10944000,
+        "cost": 4560000,
         "percent": 32
       },
       {
         "name": "대농구/시설상각비",
-        "cost": 5130000,
+        "cost": 2137500,
         "percent": 15
       },
       {
         "name": "기타비용 및 광열비",
-        "cost": 3420000,
+        "cost": 1425000,
         "percent": 10
       }
     ],
     "benchmark": {
       "top20": {
-        "revenue": 106875000,
-        "yield": 108000,
+        "revenue": 35625000,
+        "yield": 36000,
         "price": 1045,
-        "expense": 30780000,
-        "income": 76095000
+        "expense": 12825000,
+        "income": 22800000
       },
       "avg": {
-        "revenue": 85500000,
-        "yield": 90000,
+        "revenue": 28500000,
+        "yield": 30000,
         "price": 950,
-        "expense": 34200000,
-        "income": 51300000
+        "expense": 14250000,
+        "income": 14250000
       },
       "bottom20": {
-        "revenue": 61560000,
-        "yield": 67500,
+        "revenue": 20520000,
+        "yield": 22500,
         "price": 836,
-        "expense": 39330000,
-        "income": 22230000
+        "expense": 16387500,
+        "income": 4132500
       }
     },
     "kamis": {
