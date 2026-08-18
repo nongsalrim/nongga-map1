@@ -1,6 +1,6 @@
 /**
  * @file FinancialScheduleView.js
- * @description 자산 및 대출 상환 스케줄 동적 뷰 (자산 상각현황 및 대출 상환스케줄 분리 & 첨부 엑셀형 연도별 상환계획 명세서 내장)
+ * @description 자산 및 대출 상환 스케줄 동적 뷰 (대출상환스케줄 표를 그래프 위로 위치 이동 및 엑셀 가운데/오른쪽 정렬 반영)
  */
 
 import { calc5YearDepreciationSchedule, renderDepreciationDetailModal, exportDepreciationExcel } from './DepreciationDetailModal.js';
@@ -14,7 +14,7 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
     return Number(cleanStr) || 0;
   };
 
-  const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val))) + ' 원';
+  const formatMoney = (val) => val === 0 ? '-' : new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val))) + ' 원';
 
   const assets = assetsList || [];
   const loans = loansList || [];
@@ -27,6 +27,32 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
   const total5YearDep = depSchedule.total5YearDep;
 
   const totalLoanVal = loanScheduleInfo.totalAmount;
+  const yearly = loanScheduleInfo.yearlySchedule;
+
+  const yearsList = Object.keys(yearly).map(Number).sort((a, b) => a - b);
+  const halfLen = Math.ceil(yearsList.length / 2);
+
+  let yearlyRowsHtml = '';
+  for (let i = 0; i < halfLen; i++) {
+    const yLeft = yearsList[i];
+    const leftData = yearly[yLeft];
+    const yRight = yearsList[i + halfLen];
+    const rightData = yRight ? yearly[yRight] : null;
+
+    yearlyRowsHtml += `
+      <tr>
+        <td style="text-align:center; font-weight:700; background:rgba(255,255,255,0.03);">${yLeft}년</td>
+        <td style="text-align:right; font-family:Pretendard, monospace;">${leftData.bal === 0 ? '-' : formatMoney(leftData.bal)}</td>
+        <td style="text-align:right; color:#FBBF24; font-family:Pretendard, monospace;">${formatMoney(leftData.interest)}</td>
+        <td style="text-align:right; color:#34D399; font-weight:800; font-family:Pretendard, monospace;">${formatMoney(leftData.principal)}</td>
+
+        <td style="text-align:center; border-left: 2px solid rgba(255,255,255,0.2); font-weight:700; background:rgba(255,255,255,0.03);">${yRight ? yRight + '년' : ''}</td>
+        <td style="text-align:right; font-family:Pretendard, monospace;">${rightData ? (rightData.bal === 0 ? '-' : formatMoney(rightData.bal)) : ''}</td>
+        <td style="text-align:right; color:#FBBF24; font-family:Pretendard, monospace;">${rightData ? formatMoney(rightData.interest) : ''}</td>
+        <td style="text-align:right; color:#34D399; font-weight:800; font-family:Pretendard, monospace;">${rightData ? formatMoney(rightData.principal) : ''}</td>
+      </tr>
+    `;
+  }
 
   container.innerHTML = `
     <!-- 상단 대형 통합 관리 헤더 -->
@@ -34,7 +60,7 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
       <div>
         <span class="badge" style="background:rgba(59,130,246,0.2); color:#60A5FA; border:1px solid rgba(59,130,246,0.4); padding:4px 12px; border-radius:12px; font-size:12px; font-weight:700;">FINANCIAL ASSETS & LOANS CONTROL</span>
         <h2 style="font-size:20px; font-weight:900; color:#FFF; margin-top:4px;">🏛️ 농가 자산 & 부채 정밀 분리 통합 관리 센터</h2>
-        <p style="font-size:12px; color:#94A3B8; margin-top:2px;">보유 자산 감가상각 명세서와 26개년 연도별 대출 상환 스케줄을 완전히 분리하여 각각 엑셀/PDF로 출력합니다.</p>
+        <p style="font-size:12px; color:#94A3B8; margin-top:2px;">보유 자산 감가상각 명세서와 26개년 연도별 대출 상환 스케줄 표를 상단에 배치하고 각각 엑셀/PDF로 출력합니다.</p>
       </div>
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
         <button id="btn-open-dep-detail" class="btn-upload" style="background:linear-gradient(135deg, #10B981, #059669); font-weight:800;">
@@ -67,9 +93,9 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
         <table class="data-table">
           <thead>
             <tr>
-              <th>연번</th>
-              <th>자산/시설 목록명</th>
-              <th>내용년수</th>
+              <th style="text-align:center;">연번</th>
+              <th style="text-align:center;">자산/시설 목록명</th>
+              <th style="text-align:center;">내용년수</th>
               <th class="num">구입가(원)</th>
               <th class="num" style="color:#FBBF24;">연 감가상각비</th>
               <th class="num" style="color:#34D399;">5개년 누적 상각비</th>
@@ -80,9 +106,9 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
               <tr><td colspan="6" style="text-align:center; color:#94A3B8; padding:20px;">등록된 자산이 없습니다. [자산 & 대출 정보 편집하기] 버튼을 통해 자산을 추가해 주세요.</td></tr>
             ` : depSchedule.rows.map(row => `
               <tr>
-                <td>${row.idx}</td>
-                <td class="highlight">${row.name}</td>
-                <td>${row.years}년</td>
+                <td style="text-align:center;">${row.idx}</td>
+                <td class="highlight" style="text-align:center;">${row.name}</td>
+                <td style="text-align:center;">${row.years}년</td>
                 <td class="num">${formatMoney(row.cost)}</td>
                 <td class="num" style="color:#FBBF24; font-weight:800; font-family: Pretendard, monospace;">${formatMoney(row.annual)}</td>
                 <td class="num" style="color:#34D399; font-weight:800; font-family: Pretendard, monospace;">${formatMoney(row.total5Y)}</td>
@@ -91,7 +117,7 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
           </tbody>
           <tfoot style="background: rgba(16, 185, 129, 0.15); font-weight: 900; font-size: 13px;">
             <tr>
-              <td colspan="3" style="text-align:left; color:#A7F3D0; padding:12px 14px;">
+              <td colspan="3" style="text-align:center; color:#A7F3D0; padding:12px 14px;">
                 🏛️ 자산 및 감가상각비 총 합계 (SUMMARY)
               </td>
               <td class="num" style="color:#38BDF8; font-family: Pretendard, monospace;">
@@ -113,7 +139,7 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
       </div>
     </div>
 
-    <!-- 2. [독립 영역] 대출 상환 스케줄 & 부채 비율 카드 (첨부 엑셀형 구현) -->
+    <!-- 2. [독립 영역] 대출 상환 스케줄 & 부채 비율 카드 (그래프 위에 표 배치!) -->
     <div class="panel-card">
       <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <div style="display:flex; align-items:center; gap:10px;">
@@ -130,24 +156,24 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
         </div>
       </div>
 
-      <!-- ◎ 대출 현황 테이블 (첨부 엑셀과 100% 동일 양식) -->
-      <div style="margin-bottom:18px;">
-        <div style="display:flex; justify-style:space-between; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <h4 style="font-size:14px; font-weight:800; color:#60A5FA; margin:0;">◎ 대출 현황</h4>
+      <!-- [그래프 위 1번 표] ◎ 대출 현황 테이블 (첨부 엑셀과 100% 동일 양식) -->
+      <div style="margin-bottom:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h4 style="font-size:15px; font-weight:800; color:#60A5FA; margin:0;">◎ 대출 현황</h4>
           <span style="font-size:11px; color:#94A3B8;">[단위 : 원, %]</span>
         </div>
         <div class="data-table-container">
           <table class="data-table">
             <thead>
               <tr style="background: rgba(30, 58, 138, 0.3); color: #93C5FD;">
-                <th>대출조건</th>
-                <th style="text-align:left;">은행명 / 사업명</th>
+                <th style="text-align:center;">대출조건</th>
+                <th style="text-align:center;">은행명 / 사업명</th>
                 <th class="num">대출금액</th>
-                <th>대출일</th>
-                <th>만기일</th>
+                <th style="text-align:center;">대출일</th>
+                <th style="text-align:center;">만기일</th>
                 <th class="num">이자율</th>
-                <th>대출기간</th>
-                <th>거치기간</th>
+                <th style="text-align:center;">대출기간</th>
+                <th style="text-align:center;">거치기간</th>
               </tr>
             </thead>
             <tbody>
@@ -159,14 +185,14 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
                 const graceStr = loan.grace > 0 ? `${loan.grace}년 거치` : '-';
                 return `
                   <tr>
-                    <td><span class="badge" style="background:rgba(59,130,246,0.15); color:#60A5FA; border:none;">${loan.condition}</span></td>
-                    <td class="highlight" style="text-align:left;">${loan.name}</td>
+                    <td style="text-align:center;"><span class="badge" style="background:rgba(59,130,246,0.15); color:#60A5FA; border:none;">${loan.condition}</span></td>
+                    <td class="highlight" style="text-align:center;">${loan.name}</td>
                     <td class="num" style="font-family:Pretendard, monospace; font-weight:700;">${formatMoney(amount)}</td>
-                    <td>${loan.startDate}</td>
-                    <td>${loan.endDate}</td>
+                    <td style="text-align:center;">${loan.startDate}</td>
+                    <td style="text-align:center;">${loan.endDate}</td>
                     <td class="num" style="color:#FBBF24; font-weight:800;">${rateStr}</td>
-                    <td>${loan.period} 년</td>
-                    <td style="color:#A7F3D0;">${graceStr}</td>
+                    <td style="text-align:center;">${loan.period} 년</td>
+                    <td style="text-align:center; color:#A7F3D0;">${graceStr}</td>
                   </tr>
                 `;
               }).join('')}
@@ -182,9 +208,40 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
         </div>
       </div>
 
-      <!-- 대출 상환 잔액 추이 차트 -->
-      <div style="margin-top:16px; height: 180px;" class="chart-wrapper">
-        <canvas id="loanRepaymentChart"></canvas>
+      <!-- [그래프 위 2번 표] ◎ 연도별 상환계획 (2분할 26개년 표) -->
+      <div style="margin-bottom:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h4 style="font-size:15px; font-weight:800; color:#34D399; margin:0;">◎ 연도별 상환계획 (2024년 ~ 2049년)</h4>
+          <span style="font-size:11px; color:#94A3B8;">[단위 : 원]</span>
+        </div>
+        <div class="data-table-container">
+          <table class="data-table" style="font-size: 12px;">
+            <thead>
+              <tr style="background: rgba(16, 185, 129, 0.2); color: #A7F3D0;">
+                <th style="width:7%; text-align:center;">년도</th>
+                <th style="text-align:right; width:18%;">연말 잔액</th>
+                <th style="text-align:right; color:#FBBF24; width:12.5%;">이자</th>
+                <th style="text-align:right; color:#34D399; width:12.5%;">상환액</th>
+
+                <th style="width:7%; text-align:center; border-left:2px solid rgba(255,255,255,0.2);">년도</th>
+                <th style="text-align:right; width:18%;">연말 잔액</th>
+                <th style="text-align:right; color:#FBBF24; width:12.5%;">이자</th>
+                <th style="text-align:right; color:#34D399; width:12.5%;">상환액</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${yearlyRowsHtml}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- [표 하단에 위치한 그래프] 📉 26개년 연말 추정 부채잔액 변동 추이 차트 -->
+      <div>
+        <h4 style="font-size:14px; font-weight:800; color:#FCA5A5; margin-bottom:10px;">📉 26개년 연말 추정 부채잔액 상환 그래프</h4>
+        <div style="height: 220px;" class="chart-wrapper">
+          <canvas id="loanRepaymentChart"></canvas>
+        </div>
       </div>
     </div>
   `;

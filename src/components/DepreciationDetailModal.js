@@ -1,6 +1,6 @@
 /**
  * @file DepreciationDetailModal.js
- * @description 🏗️ 5개년 자산 감가상각비 정밀 명세서 모달 & 엑셀/PDF 다운로드 엔진 (CDN 온디맨드 로딩 및 CSV 폴백 완벽 내장)
+ * @description 🏗️ 5개년 자산 감가상각비 정밀 명세서 모달 & 엑셀/PDF 다운로드 엔진 (비고/문자 가운데맞춤, 수치 오른쪽맞춤, 천단위 콤마 서식 내장)
  */
 
 export function calc5YearDepreciationSchedule(assetsList) {
@@ -56,7 +56,6 @@ export function calc5YearDepreciationSchedule(assetsList) {
 export async function exportDepreciationExcel(schedule, farmName = '농가') {
   let XLSX = typeof window !== 'undefined' ? window.XLSX : null;
 
-  // 1. Dynamic script loader if window.XLSX is missing
   if (!XLSX && typeof document !== 'undefined') {
     try {
       await new Promise((resolve, reject) => {
@@ -75,7 +74,6 @@ export async function exportDepreciationExcel(schedule, farmName = '농가') {
   const formatNum = (val) => Math.round(Number(val) || 0);
   const startYear = schedule.startYear;
 
-  // 2. If SheetJS (XLSX) is available
   if (XLSX) {
     const sheetData = [
       [`[${farmName}] 농가 보유 자산 & 5개년 연도별 감가상각비 정밀 명세서`],
@@ -117,6 +115,34 @@ export async function exportDepreciationExcel(schedule, farmName = '농가') {
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+    // Apply exact alignment & number formatting
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cell_ref = XLSX.utils.encode_cell({ c: C, r: R });
+        if (!ws[cell_ref]) continue;
+
+        const cell = ws[cell_ref];
+        const val = cell.v;
+
+        if (typeof val === 'number') {
+          cell.z = '#,##0';
+          cell.s = { alignment: { horizontal: 'right', vertical: 'center' } };
+        } else {
+          cell.s = { alignment: { horizontal: 'center', vertical: 'center' } };
+        }
+
+        if (R === 3) {
+          cell.s = {
+            font: { bold: true },
+            alignment: { horizontal: 'center', vertical: 'center' },
+            fill: { fgColor: { rgb: "E2E8F0" } }
+          };
+        }
+      }
+    }
+
     ws['!cols'] = [
       { wch: 6 }, { wch: 25 }, { wch: 10 }, { wch: 16 }, { wch: 18 },
       { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 20 }
@@ -127,7 +153,7 @@ export async function exportDepreciationExcel(schedule, farmName = '농가') {
     return;
   }
 
-  // 3. Fallback CSV Exporter (UTF-8 BOM for MS Excel compatibility)
+  // Fallback CSV (UTF-8 BOM)
   let csvContent = '\uFEFF';
   csvContent += `"[${farmName}] 농가 보유 자산 & 5개년 연도별 감가상각비 정밀 명세서"\n`;
   csvContent += `"작성일자: ${new Date().toLocaleDateString('ko-KR')}"\n\n`;
@@ -224,11 +250,11 @@ export function renderDepreciationDetailModal(assetsList, farmName = '농가') {
 
       <!-- 5개년 연도별 감가상각비 정밀 테이블 -->
       <div class="data-table-container">
-        <table class="data-table" style="font-size: 13px; text-align: center;">
+        <table class="data-table" style="font-size: 13px;">
           <thead>
             <tr style="background: rgba(59, 130, 246, 0.2); color: #93C5FD;">
               <th style="text-align:center; padding:12px 8px;">연번</th>
-              <th style="text-align:left; padding:12px;">자산 / 시설 목록명</th>
+              <th style="text-align:center; padding:12px;">자산 / 시설 목록명</th>
               <th style="text-align:center;">내용년수</th>
               <th style="text-align:right;">구입가(원)</th>
               <th style="text-align:right; color:#FBBF24;">연 감가상각비(원)</th>
@@ -243,9 +269,9 @@ export function renderDepreciationDetailModal(assetsList, farmName = '농가') {
           <tbody>
             ${schedule.rows.map(r => `
               <tr>
-                <td style="font-weight:700;">${r.idx}</td>
-                <td style="text-align:left; font-weight:800; color:#FFF;">${r.name}</td>
-                <td><span class="badge" style="background:rgba(255,255,255,0.1); color:#CBD5E1;">${r.years}년</span></td>
+                <td style="text-align:center; font-weight:700;">${r.idx}</td>
+                <td style="text-align:center; font-weight:800; color:#FFF;">${r.name}</td>
+                <td style="text-align:center;"><span class="badge" style="background:rgba(255,255,255,0.1); color:#CBD5E1;">${r.years}년</span></td>
                 <td style="text-align:right; font-family: Pretendard, monospace;">${formatMoney(r.cost)}</td>
                 <td style="text-align:right; color:#FBBF24; font-weight:800; font-family: Pretendard, monospace;">${formatMoney(r.annual)}</td>
                 <td style="text-align:right; font-family: Pretendard, monospace;">${formatMoney(r.yearlyDep[0])}</td>
@@ -298,7 +324,7 @@ export function renderDepreciationDetailModal(assetsList, farmName = '농가') {
     if (e.target === modalOverlay) closeModal();
   });
 
-  // Excel Export with async dynamic loader
+  // Excel Export
   document.getElementById('btn-dep-excel').addEventListener('click', async () => {
     const btn = document.getElementById('btn-dep-excel');
     const origText = btn.innerHTML;
