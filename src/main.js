@@ -15,7 +15,7 @@ import { CROP_PRESETS, SAMPLE_ASSETS, SAMPLE_LOANS, parseExcelFile } from './uti
 class App {
   constructor() {
     this.viewStep = 'input'; // 'input' (Step 1 메인 데이터 입력 센터) | 'result' (Step 2 진단 결과 보고서)
-    this.selectedCrop = '시설수박';
+    this.selectedCrop = '시설딸기';
     this.activeTab = 'survey'; // 'survey', 'kamis', 'benchmark', 'schedule', 'simulation', 'bep', 'strategy'
     this.customExcelData = null;
     this.customAssets = JSON.parse(JSON.stringify(SAMPLE_ASSETS));
