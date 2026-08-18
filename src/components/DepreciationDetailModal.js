@@ -1,9 +1,7 @@
 /**
  * @file DepreciationDetailModal.js
- * @description 🏗️ 5개년 자산 감가상각비 정밀 명세서 모달 & 엑셀/PDF 다운로드 엔진
+ * @description 🏗️ 5개년 자산 감가상각비 정밀 명세서 모달 & 엑셀/PDF 다운로드 엔진 (CDN 온디맨드 로딩 및 CSV 폴백 완벽 내장)
  */
-
-const XLSX = typeof window !== 'undefined' ? window.XLSX : null;
 
 export function calc5YearDepreciationSchedule(assetsList) {
   const parseNum = (val) => {
@@ -55,73 +53,100 @@ export function calc5YearDepreciationSchedule(assetsList) {
   };
 }
 
-export function exportDepreciationExcel(schedule, farmName = '농가') {
-  if (!XLSX) {
-    alert('XLSX 라이브러리가 로드되지 않았습니다.');
+export async function exportDepreciationExcel(schedule, farmName = '농가') {
+  let XLSX = typeof window !== 'undefined' ? window.XLSX : null;
+
+  // 1. Dynamic script loader if window.XLSX is missing
+  if (!XLSX && typeof document !== 'undefined') {
+    try {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+        script.onload = () => resolve();
+        script.onerror = (err) => reject(err);
+        document.head.appendChild(script);
+      });
+      XLSX = window.XLSX;
+    } catch (e) {
+      console.warn('SheetJS CDN load failed, falling back to UTF-8 CSV export:', e);
+    }
+  }
+
+  const formatNum = (val) => Math.round(Number(val) || 0);
+  const startYear = schedule.startYear;
+
+  // 2. If SheetJS (XLSX) is available
+  if (XLSX) {
+    const sheetData = [
+      [`[${farmName}] 농가 보유 자산 & 5개년 연도별 감가상각비 정밀 명세서`],
+      [`작성일자: ${new Date().toLocaleDateString('ko-KR')}`],
+      [],
+      ['연번', '자산/시설 목록명', '내용년수', '구입가(원)', '연간 감가상각비(원)', `${startYear}년(1년차)`, `${startYear+1}년(2년차)`, `${startYear+2}년(3년차)`, `${startYear+3}년(4년차)`, `${startYear+4}년(5년차)`, '5개년 누적 상각비(원)']
+    ];
+
+    schedule.rows.forEach(r => {
+      sheetData.push([
+        r.idx,
+        r.name,
+        `${r.years}년`,
+        formatNum(r.cost),
+        formatNum(r.annual),
+        formatNum(r.yearlyDep[0]),
+        formatNum(r.yearlyDep[1]),
+        formatNum(r.yearlyDep[2]),
+        formatNum(r.yearlyDep[3]),
+        formatNum(r.yearlyDep[4]),
+        formatNum(r.total5Y)
+      ]);
+    });
+
+    // Summary Row
+    sheetData.push([
+      '합계',
+      '전체 자산 및 상각비 총액',
+      '-',
+      formatNum(schedule.totalAssetVal),
+      formatNum(schedule.totalAnnualDep),
+      formatNum(schedule.yearTotals[0]),
+      formatNum(schedule.yearTotals[1]),
+      formatNum(schedule.yearTotals[2]),
+      formatNum(schedule.yearTotals[3]),
+      formatNum(schedule.yearTotals[4]),
+      formatNum(schedule.total5YearDep)
+    ]);
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    ws['!cols'] = [
+      { wch: 6 }, { wch: 25 }, { wch: 10 }, { wch: 16 }, { wch: 18 },
+      { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 20 }
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, '5개년_감가상각비_명세서');
+    XLSX.writeFile(wb, `${farmName}_5개년_자산감가상각비_명세서.xlsx`);
     return;
   }
 
-  const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(val);
-
-  const startYear = schedule.startYear;
-  const sheetData = [
-    [`[${farmName}] 농가 보유 자산 & 5개년 연도별 감가상각비 정밀 명세서`],
-    [`작성일자: ${new Date().toLocaleDateString('ko-KR')}`],
-    [],
-    ['연번', '자산/시설 목록명', '내용년수', '구입가(원)', '연간 감가상각비(원)', `${startYear}년(1년차)`, `${startYear+1}년(2년차)`, `${startYear+2}년(3년차)`, `${startYear+3}년(4년차)`, `${startYear+4}년(5년차)`, '5개년 누적 상각비(원)']
-  ];
+  // 3. Fallback CSV Exporter (UTF-8 BOM for MS Excel compatibility)
+  let csvContent = '\uFEFF';
+  csvContent += `"[${farmName}] 농가 보유 자산 & 5개년 연도별 감가상각비 정밀 명세서"\n`;
+  csvContent += `"작성일자: ${new Date().toLocaleDateString('ko-KR')}"\n\n`;
+  csvContent += `"연번","자산/시설 목록명","내용년수","구입가(원)","연간 감가상각비(원)","${startYear}년(1년차)","${startYear+1}년(2년차)","${startYear+2}년(3년차)","${startYear+3}년(4년차)","${startYear+4}년(5년차)","5개년 누적 상각비(원)"\n`;
 
   schedule.rows.forEach(r => {
-    sheetData.push([
-      r.idx,
-      r.name,
-      `${r.years}년`,
-      formatMoney(r.cost),
-      formatMoney(r.annual),
-      formatMoney(r.yearlyDep[0]),
-      formatMoney(r.yearlyDep[1]),
-      formatMoney(r.yearlyDep[2]),
-      formatMoney(r.yearlyDep[3]),
-      formatMoney(r.yearlyDep[4]),
-      formatMoney(r.total5Y)
-    ]);
+    csvContent += `"${r.idx}","${r.name}","${r.years}년",${formatNum(r.cost)},${formatNum(r.annual)},${formatNum(r.yearlyDep[0])},${formatNum(r.yearlyDep[1])},${formatNum(r.yearlyDep[2])},${formatNum(r.yearlyDep[3])},${formatNum(r.yearlyDep[4])},${formatNum(r.total5Y)}\n`;
   });
 
-  // Footer Total Summary
-  sheetData.push([
-    '합계',
-    '전체 자산 및 상각비 총액',
-    '-',
-    formatMoney(schedule.totalAssetVal),
-    formatMoney(schedule.totalAnnualDep),
-    formatMoney(schedule.yearTotals[0]),
-    formatMoney(schedule.yearTotals[1]),
-    formatMoney(schedule.yearTotals[2]),
-    formatMoney(schedule.yearTotals[3]),
-    formatMoney(schedule.yearTotals[4]),
-    formatMoney(schedule.total5YearDep)
-  ]);
+  csvContent += `"합계","전체 자산 및 상각비 총액","-",${formatNum(schedule.totalAssetVal)},${formatNum(schedule.totalAnnualDep)},${formatNum(schedule.yearTotals[0])},${formatNum(schedule.yearTotals[1])},${formatNum(schedule.yearTotals[2])},${formatNum(schedule.yearTotals[3])},${formatNum(schedule.yearTotals[4])},${formatNum(schedule.total5YearDep)}\n`;
 
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(sheetData);
-  
-  // Set column widths
-  ws['!cols'] = [
-    { wch: 6 },
-    { wch: 25 },
-    { wch: 10 },
-    { wch: 16 },
-    { wch: 18 },
-    { wch: 16 },
-    { wch: 16 },
-    { wch: 16 },
-    { wch: 16 },
-    { wch: 16 },
-    { wch: 20 }
-  ];
-
-  XLSX.utils.book_append_sheet(wb, ws, '5개년_감가상각비_명세서');
-  XLSX.writeFile(wb, `${farmName}_5개년_자산감가상각비_명세서.xlsx`);
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `${farmName}_5개년_자산감가상각비_명세서.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 export function renderDepreciationDetailModal(assetsList, farmName = '농가') {
@@ -164,7 +189,7 @@ export function renderDepreciationDetailModal(assetsList, farmName = '농가') {
           <button id="btn-dep-excel" style="background: linear-gradient(135deg, #059669, #10B981); color: #FFF; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(16,185,129,0.3);">
             📊 엑셀 명세서 다운로드
           </button>
-          <button id="btn-dep-print" style="background: linear-gradient(135deg, #3B82F6, #1D4ED8); color: #FFF; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; align- items: center; gap: 6px;">
+          <button id="btn-dep-print" style="background: linear-gradient(135deg, #3B82F6, #1D4ED8); color: #FFF; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
             📄 PDF / 인쇄 출력
           </button>
           <button id="btn-close-dep-modal" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #FFF; padding: 10px 16px; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer;">
@@ -273,9 +298,20 @@ export function renderDepreciationDetailModal(assetsList, farmName = '농가') {
     if (e.target === modalOverlay) closeModal();
   });
 
-  // Excel Export
-  document.getElementById('btn-dep-excel').addEventListener('click', () => {
-    exportDepreciationExcel(schedule, farmName);
+  // Excel Export with async dynamic loader
+  document.getElementById('btn-dep-excel').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-dep-excel');
+    const origText = btn.innerHTML;
+    btn.innerHTML = '⌛ 엑셀 생성 중...';
+    btn.disabled = true;
+    try {
+      await exportDepreciationExcel(schedule, farmName);
+    } catch (err) {
+      console.error('Excel export error:', err);
+    } finally {
+      btn.innerHTML = origText;
+      btn.disabled = false;
+    }
   });
 
   // Print PDF
