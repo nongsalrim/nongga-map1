@@ -380,11 +380,11 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             </span>
           </div>
 
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <button id="btn-save-farm-draft" style="background: linear-gradient(135deg, #10B981, #059669); color: #FFF; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px;">
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <button id="btn-save-farm-draft" style="background: linear-gradient(135deg, #10B981, #059669); color: #FFFFFF; border: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 14px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
               💾 현재 농가 데이터 중간 저장
             </button>
-            <button id="btn-open-draft-modal" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3B82F6; color: #93C5FD; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <button id="btn-open-draft-modal" style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: #FFFFFF; border: 1px solid #3B82F6; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,99,235,0.4); transition: all 0.2s ease;">
               📂 저장된 농가 목록 불러오기 (${savedDrafts.length}개)
             </button>
           </div>

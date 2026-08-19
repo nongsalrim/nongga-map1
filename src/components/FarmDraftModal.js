@@ -106,6 +106,11 @@ export function getAutoSaveDraft() {
  * 6. 저장된 농가 목록 불러오기 팝업 모달 렌더링
  */
 export function openFarmDraftModal(onLoadDraft, onNewFarm) {
+  const existingModal = document.getElementById('farm-draft-modal-overlay');
+  if (existingModal) {
+    try { document.body.removeChild(existingModal); } catch(e) {}
+  }
+
   const drafts = getFarmDrafts();
   const autoSave = getAutoSaveDraft();
 
