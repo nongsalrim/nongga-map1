@@ -87,10 +87,10 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     let totalBookValue = 0;
     let totalAnnualDep = 0;
 
-    const rows = (assets || []).map((a, idx) => {
-      const price = parseNum(a.구입가) || 0;
+    const rows = (assets || []).filter(Boolean).map((a, idx) => {
+      const price = parseNum(a.구입가 !== undefined ? a.구입가 : a.price) || 0;
       const buildYear = parseNum(a.건립년도 || a.buildYear) || (targetYear - 2);
-      const years = parseNum(a.내용년수) || 10;
+      const years = parseNum(a.내용년수 || a.years) || 10;
 
       const elapsed = Math.max(0, targetYear - buildYear);
       const remainingYears = Math.max(0, years - elapsed);
@@ -135,7 +135,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       repayCount: 0
     }));
 
-    loans.forEach(loan => {
+    (loans || []).filter(Boolean).forEach(loan => {
       let balance = parseNum(loan.대출금액 !== undefined ? loan.대출금액 : (loan.amount !== undefined ? loan.amount : loan.원금)) || 0;
       if (balance <= 0) return;
 
