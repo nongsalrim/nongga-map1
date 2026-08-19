@@ -1,36 +1,7 @@
 /**
  * @file LoanScheduleModal.js
- * @description 💳 대출 현황 & 26개년 연도별 상환계획 정밀 명세서 모달 및 엑셀 다운로드 엔진 (비고/문자 가운데맞춤, 수치 오른쪽맞춤, 천단위 콤마 서식 내장)
+ * @description 💳 대출 현황 & 26개년 연도별 상환계획 정밀 명세서 모달 및 엑셀 다운로드 엔진 (대출 실행년도 기반 100% 동적 상환 스케줄)
  */
-
-export const LOAN_SCHEDULE_REF_DATA = {
-  2024: { bal: 624000000, interest: 9102578, principal: 0 },
-  2025: { bal: 624000000, interest: 12903000, principal: 0 },
-  2026: { bal: 491777778, interest: 7634556, principal: 22222222 },
-  2027: { bal: 425111111, interest: 6622009, principal: 66666667 },
-  2028: { bal: 358444444, interest: 5759102, principal: 66666667 },
-  2029: { bal: 306111620, interest: 4889615, principal: 52332825 },
-  2030: { bal: 292427157, interest: 4497848, principal: 13684463 },
-  2031: { bal: 278536010, interest: 4291164, principal: 13891147 },
-  2032: { bal: 264435058, interest: 4081358, principal: 14100953 },
-  2033: { bal: 250121131, interest: 3868384, principal: 14313927 },
-  2034: { bal: 235591012, interest: 3652193, principal: 14530118 },
-  2035: { bal: 220841438, interest: 3432736, principal: 14749575 },
-  2036: { bal: 205869092, interest: 3209965, principal: 14972346 },
-  2037: { bal: 190670611, interest: 2983830, principal: 15198481 },
-  2038: { bal: 175242578, interest: 2754279, principal: 15428032 },
-  2039: { bal: 159581528, interest: 2521260, principal: 15661051 },
-  2040: { bal: 143683939, interest: 2284723, principal: 15897588 },
-  2041: { bal: 127546241, interest: 2044613, principal: 16137698 },
-  2042: { bal: 111164806, interest: 1800876, principal: 16381435 },
-  2043: { bal: 94535953, interest: 1553458, principal: 16628853 },
-  2044: { bal: 77655946, interest: 1302303, principal: 16880008 },
-  2045: { bal: 60520990, interest: 1047355, principal: 17134956 },
-  2046: { bal: 43127235, interest: 788556, principal: 17393755 },
-  2047: { bal: 25470773, interest: 525849, principal: 17656462 },
-  2048: { bal: 7547636, interest: 259174, principal: 17923137 },
-  2049: { bal: 0, interest: 28327, principal: 7547636 }
-};
 
 export function calcDetailedLoanSchedule(loansList) {
   const parseNum = (val) => {
@@ -40,30 +11,114 @@ export function calcDetailedLoanSchedule(loansList) {
     return Number(cleanStr) || 0;
   };
 
+  const currentYear = new Date().getFullYear();
+
   const defaultLoans = [
-    { condition: '원리금균등', name: '청창농 사업비 대출', amount: 314000000, startDate: '2024-06-03', endDate: '2049-05-31', rate: 1.5, period: 25, grace: 5 },
-    { condition: '원금균등', name: '충보 신용보증기금', amount: 200000000, startDate: '2024-09-04', endDate: '2029-08-31', rate: 1.3, period: 5, grace: 2 },
-    { condition: '일시상환', name: '운전자금 신용대출', amount: 50000000, startDate: '2024-01-17', endDate: '2026-01-17', rate: 5.09, period: 2, grace: 0 },
-    { condition: '일시상환', name: '시설 보구 신용대출', amount: 60000000, startDate: '2024-01-22', endDate: '2026-01-22', rate: 5.08, period: 2, grace: 0 }
+    { condition: '원리금균등', name: '청창농 사업비 대출', amount: 314000000, startYear: 2026, startDate: '2026-01-01', endDate: '2050-12-31', rate: 0.015, period: 25, grace: 5, zeroYears: 0 },
+    { condition: '원금균등', name: '충보 신용보증기금 (이차보전)', amount: 200000000, startYear: 2026, startDate: '2026-01-01', endDate: '2032-12-31', rate: 0.05, period: 7, grace: 2, zeroYears: 5 },
+    { condition: '일시상환', name: '운전자금 신용대출', amount: 50000000, startYear: 2026, startDate: '2026-01-01', endDate: '2027-12-31', rate: 0.0509, period: 2, grace: 2, zeroYears: 0 },
+    { condition: '일시상환', name: '시설 보구 신용대출', amount: 60000000, startYear: 2026, startDate: '2026-01-01', endDate: '2027-12-31', rate: 0.0508, period: 2, grace: 2, zeroYears: 0 }
   ];
 
-  const loans = (loansList && loansList.length > 0) ? loansList.map((l, i) => ({
-    condition: l.대출조건 || l.대출종류 || defaultLoans[i % 4].condition,
-    name: l.은행명 || l.name || defaultLoans[i % 4].name,
-    amount: parseNum(l.대출금액 !== undefined ? l.대출금액 : l.amount) || defaultLoans[i % 4].amount,
-    startDate: l.대출일 || defaultLoans[i % 4].startDate,
-    endDate: l.만기일 || defaultLoans[i % 4].endDate,
-    rate: parseNum(l.이자율 !== undefined ? l.이자율 : l.rate) || defaultLoans[i % 4].rate,
-    period: parseNum(l.대출기간 !== undefined ? l.대출기간 : l.period) || defaultLoans[i % 4].period,
-    grace: parseNum(l.거치기간 !== undefined ? l.거치기간 : l.grace) || defaultLoans[i % 4].grace
-  })) : defaultLoans;
+  const loans = (loansList && loansList.length > 0) ? loansList.filter(Boolean).map((l, i) => {
+    const sYear = parseNum(l.대출실행년도 || l.startYear || l.year) || currentYear;
+    const period = parseNum(l.대출기간 !== undefined ? l.대출기간 : l.period) || 10;
+    const grace = parseNum(l.거치기간 !== undefined ? l.거치기간 : l.grace) || 0;
+    const zeroYears = parseNum(l.무이자기간 !== undefined ? l.무이자기간 : l.zeroYears) || 0;
+    const amount = parseNum(l.대출금액 !== undefined ? l.대출금액 : l.amount) || 0;
+    const rVal = parseNum(l.이자율 !== undefined ? l.이자율 : l.rate) || 1.5;
+    const rate = rVal > 1 ? rVal / 100 : rVal;
+    const condition = l.대출조건 || l.대출종류 || defaultLoans[i % 4].condition;
+    const name = l.은행명 || l.name || defaultLoans[i % 4].name;
+
+    return {
+      condition,
+      name,
+      amount,
+      startYear: sYear,
+      startDate: l.대출일 || `${sYear}-01-01`,
+      endDate: l.만기일 || `${sYear + period - 1}-12-31`,
+      rate,
+      period,
+      grace,
+      zeroYears
+    };
+  }) : defaultLoans;
 
   const totalAmount = loans.reduce((sum, l) => sum + l.amount, 0);
+
+  // Determine starting calendar year for 26-year schedule
+  let startCalYear = Math.min(...loans.map(l => l.startYear));
+  if (!startCalYear || isNaN(startCalYear) || startCalYear < 2000) startCalYear = currentYear;
+  const endCalYear = startCalYear + 25;
+
+  const yearlySchedule = {};
+  for (let yr = startCalYear; yr <= endCalYear; yr++) {
+    yearlySchedule[yr] = { bal: 0, interest: 0, principal: 0 };
+  }
+
+  // Calculate annual schedule per loan
+  loans.forEach(loan => {
+    let balance = loan.amount;
+    const lStart = loan.startYear;
+    const period = loan.period;
+    const grace = loan.grace;
+    const zeroYears = loan.zeroYears;
+    const rate = loan.rate;
+    const type = loan.condition;
+    const repayYears = Math.max(1, period - grace);
+
+    for (let yr = lStart; yr < lStart + period; yr++) {
+      if (!yearlySchedule[yr]) {
+        yearlySchedule[yr] = { bal: 0, interest: 0, principal: 0 };
+      }
+      if (balance <= 0) break;
+
+      const loanYearIndex = yr - lStart + 1; // 1..period
+      const activeRate = (loanYearIndex <= zeroYears) ? 0 : rate;
+      let p = 0;
+      let i = Math.round(balance * activeRate);
+
+      if (loanYearIndex <= grace) {
+        p = 0;
+      } else {
+        if (type === '원금균등') {
+          p = Math.min(balance, Math.round(loan.amount / repayYears));
+        } else if (type === '일시상환') {
+          if (loanYearIndex === period) {
+            p = balance;
+          } else {
+            p = 0;
+          }
+        } else {
+          // 원리금균등
+          const P = balance;
+          const r = activeRate;
+          const remYears = Math.max(1, period - loanYearIndex + 1);
+          let pmt = 0;
+          if (r > 0) {
+            pmt = Math.round(P * (r * Math.pow(1 + r, remYears)) / (Math.pow(1 + r, remYears) - 1));
+          } else {
+            pmt = Math.round(P / remYears);
+          }
+          p = Math.min(balance, Math.max(0, pmt - i));
+        }
+      }
+
+      balance = Math.max(0, balance - p);
+
+      yearlySchedule[yr].principal += p;
+      yearlySchedule[yr].interest += i;
+      yearlySchedule[yr].bal += balance;
+    }
+  });
 
   return {
     loans,
     totalAmount,
-    yearlySchedule: LOAN_SCHEDULE_REF_DATA
+    yearlySchedule,
+    startCalYear,
+    endCalYear
   };
 }
 
@@ -123,7 +178,7 @@ export async function exportLoanExcel(loansList, farmName = '농가') {
     ]);
 
     sheetData.push([]);
-    sheetData.push([`◎ 연도별 상환계획`, '', '', '', '', '', '', '[단위 : 원]']);
+    sheetData.push([`◎ 연도별 상환계획 (${scheduleInfo.startCalYear}년 ~ ${scheduleInfo.endCalYear}년)`, '', '', '', '', '', '', '[단위 : 원]']);
     sheetData.push(['년도', '연말 잔액', '이자', '상환액', '년도', '연말 잔액', '이자', '상환액']);
 
     const yearsList = Object.keys(yearly).map(Number).sort((a, b) => a - b);
@@ -210,7 +265,7 @@ export async function exportLoanExcel(loansList, farmName = '농가') {
   });
 
   csv += `"합계","",${formatMoney(scheduleInfo.totalAmount)},,,,,\n\n`;
-  csv += `"◎ 연도별 상환계획",,,,,,,,"[단위 : 원]"\n`;
+  csv += `"◎ 연도별 상환계획 (${scheduleInfo.startCalYear}년 ~ ${scheduleInfo.endCalYear}년)",,,,,,,,"[단위 : 원]"\n`;
   csv += `"년도","연말 잔액","이자","상환액","년도","연말 잔액","이자","상환액"\n`;
 
   const yearsList = Object.keys(yearly).map(Number).sort((a, b) => a - b);
@@ -222,7 +277,7 @@ export async function exportLoanExcel(loansList, farmName = '농가') {
     const yRight = yearsList[i + halfLen];
     const rightData = yRight ? yearly[yRight] : null;
 
-    csv += `"${yLeft}년",${leftData.bal === 0 ? '"-"' : formatMoney(leftData.bal)},${formatMoney(leftData.interest)},${formatMoney(leftData.principal)},${yRight ? `"${yRight}년"` : '""'},${rightData ? (rightData.bal === 0 ? '"-"' : formatMoney(rightData.bal)) : '""'},${rightData ? formatMoney(rightData.interest) : '""'},${rightData ? formatMoney(rightData.principal) : '""'}\n`;
+    csv += `"${yLeft}년",${leftData.bal === 0 ? '-' : formatMoney(leftData.bal)},${leftData.interest === 0 ? '-' : formatMoney(leftData.interest)},${leftData.principal === 0 ? '-' : formatMoney(leftData.principal)},"${yRight ? yRight + '년' : ''}",${rightData ? (rightData.bal === 0 ? '-' : formatMoney(rightData.bal)) : ''},${rightData ? (rightData.interest === 0 ? '-' : formatMoney(rightData.interest)) : ''},${rightData ? (rightData.principal === 0 ? '-' : formatMoney(rightData.principal)) : ''}\n`;
   }
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -293,7 +348,7 @@ export function renderLoanScheduleModal(loansList, farmName = '농가') {
             💳 대출 상환 스케줄 & 26개년 연도별 상환계획 정밀 명세서
           </h2>
           <p style="font-size: 13px; color: #94A3B8; margin-top: 2px;">
-            보유 대출금별 조건 및 2024~2049년 26개년 연말 원금잔액/발생이자/원금상환액 정밀 스케줄표입니다.
+            보유 대출금별 조건 및 ${scheduleInfo.startCalYear}~${scheduleInfo.endCalYear}년 26개년 연말 원금잔액/발생이자/원금상환액 정밀 스케줄표입니다.
           </p>
         </div>
 
@@ -310,23 +365,23 @@ export function renderLoanScheduleModal(loansList, farmName = '농가') {
         </div>
       </div>
 
-      <!-- Section 1: ◎ 대출 현황 (Loan Status Table matching Excel) -->
-      <div style="margin-bottom: 28px;">
+      <!-- Section 1: ◎ 대출 현황 (Table matching Excel) -->
+      <div style="margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <h3 style="font-size: 16px; font-weight: 800; color: #60A5FA;">◎ 대출 현황</h3>
           <span style="font-size: 12px; color: #94A3B8;">[단위 : 원, %]</span>
         </div>
 
         <div class="data-table-container">
-          <table class="data-table" style="font-size: 13px;">
+          <table class="data-table">
             <thead>
-              <tr style="background: rgba(30, 58, 138, 0.4); color: #93C5FD;">
+              <tr style="background: rgba(30, 58, 138, 0.3); color: #93C5FD;">
                 <th style="text-align:center;">대출조건</th>
                 <th style="text-align:center;">은행명 / 사업명</th>
-                <th style="text-align:right;">대출금액</th>
+                <th class="num">대출금액</th>
                 <th style="text-align:center;">대출일</th>
                 <th style="text-align:center;">만기일</th>
-                <th style="text-align:right;">이자율</th>
+                <th class="num">이자율</th>
                 <th style="text-align:center;">대출기간</th>
                 <th style="text-align:center;">거치기간</th>
               </tr>
@@ -363,7 +418,7 @@ export function renderLoanScheduleModal(loansList, farmName = '농가') {
       <!-- Section 2: ◎ 연도별 상환계획 (2-Column Side-by-Side Split Table matching Excel) -->
       <div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <h3 style="font-size: 16px; font-weight: 800; color: #34D399;">◎ 연도별 상환계획 (2024년 ~ 2049년)</h3>
+          <h3 style="font-size: 16px; font-weight: 800; color: #34D399;">◎ 연도별 상환계획 (${scheduleInfo.startCalYear}년 ~ ${scheduleInfo.endCalYear}년)</h3>
           <span style="font-size: 12px; color: #94A3B8;">[단위 : 원]</span>
         </div>
 

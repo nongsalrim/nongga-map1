@@ -212,7 +212,7 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
         <!-- [그래프 위 2번 표] ◎ 연도별 상환계획 (2분할 26개년 표) -->
         <div style="margin-bottom:24px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <h4 style="font-size:15px; font-weight:800; color:#34D399; margin:0;">◎ 연도별 상환계획 (2024년 ~ 2049년)</h4>
+            <h4 style="font-size:15px; font-weight:800; color:#34D399; margin:0;">◎ 연도별 상환계획 (${loanScheduleInfo.startCalYear || 2026}년 ~ ${loanScheduleInfo.endCalYear || 2051}년)</h4>
             <span style="font-size:11px; color:#94A3B8;">[단위 : 원]</span>
           </div>
           <div class="data-table-container">
@@ -263,10 +263,13 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
           Math.round(startBalance * 0.15)
         ];
 
+        const sY = loanScheduleInfo.startCalYear || 2026;
+        const chartLabels = [sY, sY + 1, sY + 2, sY + 3, sY + 4, sY + 5, sY + 6].map(y => y + '년');
+
         new window.Chart(ctx, {
           type: 'line',
           data: {
-            labels: ['2024년', '2025년', '2026년', '2027년', '2028년', '2029년', '2030년'],
+            labels: chartLabels,
             datasets: [
               {
                 label: '연말 추정 부채잔액(원)',
