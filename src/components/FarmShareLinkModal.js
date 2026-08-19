@@ -25,8 +25,8 @@ export function openFarmShareLinkModal(model, activeTab = 'survey') {
   const areaPyung = parseNum(model.areaPyung) || 1000;
   const region = model.region || '충남';
 
-  // Default Base Domain (Vercel Live URL)
-  let defaultDomain = 'https://temporary-instant-ruby-j9thqc0.vercel.app';
+  // Default Base Domain (Permanent 24/7 GitHub Pages Live URL)
+  let defaultDomain = 'https://nongsalrim.github.io/nongga-map1';
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
     defaultDomain = window.location.origin;
   }
