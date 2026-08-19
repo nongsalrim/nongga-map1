@@ -641,11 +641,11 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             </div>
           </div>
 
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="cost-budget-section-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
             
             <!-- 변동비 (Variable Costs) -->
             <div style="background:rgba(16,185,129,0.04); border:1px solid rgba(16,185,129,0.25); border-radius:12px; padding:18px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid rgba(16,185,129,0.2); padding-bottom:10px;">
+              <div class="cost-card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid rgba(16,185,129,0.2); padding-bottom:10px;">
                 <h3 style="font-size:15px; font-weight:800; color:#10B981; display:flex; align-items:center; gap:6px;">
                   🌱 변동비 (Variable Costs)
                 </h3>
@@ -653,7 +653,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               </div>
 
               <div class="data-table-container">
-                <table class="data-table" style="font-size:13px;">
+                <table class="data-table cost-table" style="font-size:13px;">
                   <thead>
                     <tr>
                       <th>세부 비목명</th>
@@ -678,13 +678,13 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
                       return `
                         <tr>
-                          <td style="font-weight:600; color:#E2E8F0;">
+                          <td class="cost-name-cell" style="font-weight:600; color:#E2E8F0;">
                             ${item.name} ${isSynced ? `<span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10B981; padding:2px 6px; border-radius:4px; margin-left:4px;">⚡순수이자 연동</span>` : ''}
                           </td>
-                          <td>
-                            <input type="text" class="v-cost-var-input" data-idx="${idx}" value="${formatComma(item.cost)}" style="text-align:right; background:#0F172A; border:1px solid ${isSynced ? '#10B981' : 'rgba(255,255,255,0.15)'}; color:${isSynced ? '#10B981' : '#FFF'}; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
+                          <td class="cost-input-cell">
+                            <input type="text" class="v-cost-var-input" data-idx="${idx}" value="${formatComma(item.cost)}" style="text-align:right; background:#0F172A; border:1px solid ${isSynced ? '#10B981' : 'rgba(255,255,255,0.15)'}; color:${isSynced ? '#10B981' : '#FFF'}; padding:6px 10px; border-radius:6px; width:100%; font-size:14px; font-weight:700; font-family: Pretendard, monospace;" />
                           </td>
-                          <td style="text-align:right; color:#94A3B8;">
+                          <td class="cost-guide-cell" style="text-align:right; color:#94A3B8;">
                             ${formatShortMoney(guideCost)} ${diffBadge}
                           </td>
                         </tr>
@@ -697,7 +697,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
             <!-- 고정비 (Fixed Costs) -->
             <div style="background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.25); border-radius:12px; padding:18px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid rgba(59,130,246,0.2); padding-bottom:10px;">
+              <div class="cost-card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid rgba(59,130,246,0.2); padding-bottom:10px;">
                 <h3 style="font-size:15px; font-weight:800; color:#3B82F6; display:flex; align-items:center; gap:6px;">
                   🏢 고정비 (Fixed Costs)
                 </h3>
@@ -705,7 +705,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               </div>
 
               <div class="data-table-container">
-                <table class="data-table" style="font-size:13px;">
+                <table class="data-table cost-table" style="font-size:13px;">
                   <thead>
                     <tr>
                       <th>세부 비목명</th>
@@ -729,13 +729,13 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
                       return `
                         <tr>
-                          <td style="font-weight:600; color:#E2E8F0;">
+                          <td class="cost-name-cell" style="font-weight:600; color:#E2E8F0;">
                             ${item.name} ${isSynced ? `<span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10B981; padding:2px 6px; border-radius:4px; margin-left:4px;">⚡자산연동</span>` : ''}
                           </td>
-                          <td>
-                            <input type="text" class="v-cost-fix-input" data-idx="${idx}" value="${formatComma(item.cost)}" style="text-align:right; background:#0F172A; border:1px solid ${isSynced ? '#10B981' : 'rgba(255,255,255,0.15)'}; color:${isSynced ? '#10B981' : '#FFF'}; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
+                          <td class="cost-input-cell">
+                            <input type="text" class="v-cost-fix-input" data-idx="${idx}" value="${formatComma(item.cost)}" style="text-align:right; background:#0F172A; border:1px solid ${isSynced ? '#10B981' : 'rgba(255,255,255,0.15)'}; color:${isSynced ? '#10B981' : '#FFF'}; padding:6px 10px; border-radius:6px; width:100%; font-size:14px; font-weight:700; font-family: Pretendard, monospace;" />
                           </td>
-                          <td style="text-align:right; color:#94A3B8;">
+                          <td class="cost-guide-cell" style="text-align:right; color:#94A3B8;">
                             ${formatShortMoney(guideCost)} ${diffBadge}
                           </td>
                         </tr>

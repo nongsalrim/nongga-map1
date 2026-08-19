@@ -647,4 +647,69 @@
     color: #60A5FA;
     margin-bottom: 4px;
   }
+
+  /* 2. 경영비 세부 비목별 예산 입력창 스마트폰 카드 뷰 반응형 */
+  .cost-budget-section-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .cost-card-header {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+
+  .cost-table tr {
+    display: flex !important;
+    flex-direction: column !important;
+    background: rgba(15, 23, 42, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 12px !important;
+    padding: 12px 14px !important;
+    margin-bottom: 10px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+  }
+
+  .cost-table td.cost-name-cell {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    color: #F3F4F6 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 8px !important;
+    grid-column: auto !important;
+  }
+
+  .cost-table td.cost-input-cell {
+    padding: 2px 0 !important;
+    grid-column: auto !important;
+  }
+
+  .cost-table td.cost-input-cell input {
+    font-size: 16px !important; /* iOS 키보드 줌 방지 */
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+  }
+
+  .cost-table td.cost-guide-cell {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    font-size: 12px !important;
+    color: #94A3B8 !important;
+    margin-top: 6px !important;
+    grid-column: auto !important;
+  }
+
+  .cost-table td.cost-guide-cell::before {
+    content: "농진청 평균 가이드:";
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #60A5FA;
+  }
 }
