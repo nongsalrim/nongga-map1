@@ -94,7 +94,7 @@ export function setupHeaderListeners(onNavigate, onToggleAdmin) {
         return;
       }
       const pin = prompt('🔒 농가살림연구소(주) 관리자 전용 보안 PIN 번호를 입력하세요:');
-      if (pin === '2605' || pin === '1234') {
+      if (pin === '4547') {
         onToggleAdmin();
       } else if (pin !== null) {
         alert('❌ 보안 PIN 번호가 일치하지 않습니다. 관리자 모드 접근이 차단되었습니다.');
