@@ -118,16 +118,16 @@ export function renderBepSensitivity(container, model) {
           </div>
         </div>
 
-        <!-- 4. 20년차 컨설턴트 총평 -->
-        <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 14px; padding: 20px; color: #FFF;">
+        <!-- 4. 20년차 컨설턴트 총평 (고대비 명확 렌더링 카드!) -->
+        <div style="background: #1E293B; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 14px; padding: 20px; color: #FFF; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:12px; color:#A7F3D0; font-weight:700;">컨설턴트 안심 진단</span>
-            <span style="font-size:18px;">👨‍🌾</span>
+            <span style="font-size:13px; color:#34D399; font-weight:800;">컨설턴트 안심 진단</span>
+            <span style="font-size:20px;">👨‍🌾</span>
           </div>
-          <div style="font-size: 15px; font-weight: 800; color: #FFF; margin-top: 8px;">
+          <div style="font-size: 17px; font-weight: 900; color: ${Number(marginOfSafety) > 30 ? '#34D399' : (Number(marginOfSafety) > 15 ? '#FBBF24' : '#F87171')}; margin-top: 8px;">
             ${Number(marginOfSafety) > 30 ? '🟢 고수익·안전 경영체' : Number(marginOfSafety) > 15 ? '🟡 적정 안전선 경영체' : '🔴 원가 관리 주의 필요'}
           </div>
-          <div style="font-size: 12px; color: #CBD5E1; margin-top: 6px; line-height: 1.4;">
+          <div style="font-size: 13px; color: #F1F5F9; margin-top: 8px; line-height: 1.5; font-weight: 500;">
             ${Number(marginOfSafety) > 30 
               ? '단가 및 생산량 변동 리스크 방어력이 매우 뛰어난 상태입니다.' 
               : '시장 가격 하락 시 적자 전환 가능성이 있어 원가 절감이 필요합니다.'}
@@ -182,7 +182,7 @@ export function renderBepSensitivity(container, model) {
 
                       let cellBg = isBaseline ? 'rgba(16, 185, 129, 0.25)' : (simInc >= 0 ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.15)');
                       let cellBorder = isBaseline ? '2px solid #10B981' : '1px solid rgba(255,255,255,0.05)';
-                      let textColor = simInc >= 0 ? (isBaseline ? '#A7F3D0' : '#34D399') : '#FCA5A5';
+                      let textColor = simInc >= 0 ? (isBaseline ? '#34D399' : '#34D399') : '#F87171';
 
                       return `
                         <td style="background:${cellBg}; border:${cellBorder}; padding:12px 8px;">
@@ -212,7 +212,7 @@ export function renderBepSensitivity(container, model) {
           <h4 style="font-size: 16px; font-weight: 800; color: #F59E0B; margin-bottom: 4px;">
             경영 20년 차 컨설턴트의 BEP 리스크 방어 가이드
           </h4>
-          <p style="font-size: 13px; color: #CBD5E1; line-height: 1.5;">
+          <p style="font-size: 13px; color: #F1F5F9; line-height: 1.5;">
             현재 농가의 손익분기 단가는 <b>kg당 ${formatComma(bepPricePerKg)} 원</b>입니다. 
             시세가 -20% 급락하고 수확량이 -10% 감소하는 최악의 고온/가뭄 시나리오에서도 <b>${formatShortMoney((pricePerKg*0.8)*(yieldKg*0.9) - expenses)}</b>의 안정적인 소득을 유지하려면, **고정비 감가상각 절감 및 지자체 에너지 보조금 매칭 전략(7번 탭)**을 수립하는 것을 적극 권장합니다.
           </p>
