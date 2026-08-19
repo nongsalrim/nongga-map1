@@ -26,7 +26,7 @@ export function openFarmShareLinkModal(model, activeTab = 'survey') {
   const region = model.region || '충남';
 
   // Default Base Domain (Vercel Live URL)
-  let defaultDomain = 'https://temporary-rapid-sitar-xbeu4ox.vercel.app';
+  let defaultDomain = 'https://temporary-instant-ruby-j9thqc0.vercel.app';
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
     defaultDomain = window.location.origin;
   }
