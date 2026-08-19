@@ -14,7 +14,7 @@ const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(pa
 const formatComma = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val)));
 
 export function calc5YearDepreciationSchedule(assetsList) {
-  const assets = assetsList || [];
+  const assets = Array.isArray(assetsList) ? assetsList : [];
   const currentYear = new Date().getFullYear();
 
   let totalAssetVal = 0;

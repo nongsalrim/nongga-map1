@@ -17,8 +17,8 @@ export function renderFinancialSchedule(container, assetsList, loansList, onOpen
 
     const formatMoney = (val) => val === 0 ? '-' : new Intl.NumberFormat('ko-KR').format(Math.round(parseNum(val))) + ' 원';
 
-    const assets = assetsList || [];
-    const loans = loansList || [];
+    const assets = Array.isArray(assetsList) ? assetsList : (Array.isArray(loansList) ? loansList : []);
+    const loans = Array.isArray(loansList) && loansList !== assets ? loansList : (Array.isArray(onOpenEditor) ? onOpenEditor : []);
 
     const depSchedule = calc5YearDepreciationSchedule(assets);
     const loanScheduleInfo = calcDetailedLoanSchedule(loans);
