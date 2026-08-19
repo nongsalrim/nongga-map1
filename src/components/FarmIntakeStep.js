@@ -399,12 +399,12 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         </div>
 
         <!-- 💾 농가별 데이터 중간 저장 & 불러오기 관리 컨트롤 바 -->
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 14px; font-weight: 800; color: #10B981; display: flex; align-items: center; gap: 6px;">
+        <div style="background: #1E293B; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 14px; padding: 16px 22px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 15px; font-weight: 900; color: #34D399; display: flex; align-items: center; gap: 6px;">
               💾 농가별 데이터 중간 저장 관리
             </span>
-            <span id="draft-auto-save-status" style="font-size: 11.5px; color: #A7F3D0; background: rgba(16,185,129,0.2); padding: 3px 8px; border-radius: 6px; font-weight: 700;">
+            <span id="draft-auto-save-status" style="font-size: 12px; color: #34D399; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 10px; border-radius: 8px; font-weight: 800;">
               ${lastAutoSaveTime ? `⚡ 실시간 자동 저장 완료 (${lastAutoSaveTime})` : '⚡ 실시간 자동 저장 작동 중'}
             </span>
           </div>
@@ -420,9 +420,9 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         </div>
 
         ${toastMsg ? `
-          <div style="background: rgba(16,185,129,0.15); border: 1px solid #10B981; color: #A7F3D0; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; font-size: 14px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;">
-            <span>${toastMsg}</span>
-            <button id="close-toast-btn" style="background:none; border:none; color:#A7F3D0; font-size:16px; cursor:pointer; font-weight:900;">✕</button>
+          <div style="background: #1E293B; border: 1px solid #10B981; color: #34D399; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px; font-size: 14.5px; font-weight: 900; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
+            <span style="color: #34D399; font-weight: 900; font-size: 14.5px;">${toastMsg}</span>
+            <button id="close-toast-btn" style="background:none; border:none; color:#34D399; font-size:18px; cursor:pointer; font-weight:900;">✕</button>
           </div>
         ` : ''}
 
