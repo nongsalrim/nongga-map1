@@ -271,7 +271,13 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
   }
 
   function renderForm() {
-    baseCropModel = FULL_CROP_DATABASE[farmState.cropName] || FULL_CROP_DATABASE['시설상추'];
+    baseCropModel = FULL_CROP_DATABASE[farmState.cropName];
+    if (!baseCropModel) {
+      const cropKeys = Object.keys(FULL_CROP_DATABASE);
+      const matchedKey = cropKeys.find(k => k.includes(farmState.cropName) || farmState.cropName.includes(k)) || '시설딸기(수경)';
+      farmState.cropName = matchedKey;
+      baseCropModel = FULL_CROP_DATABASE[matchedKey];
+    }
     
     const areaScaleFactor = (farmState.areaPyung || 1000) / (baseCropModel.areaPyung || 1000);
     const cycleScaleFactor = (farmState.cycles || 1) / (baseCropModel.cycles || 1);

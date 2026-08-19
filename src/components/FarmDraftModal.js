@@ -198,7 +198,7 @@ export function openFarmDraftModal(onLoadDraft, onNewFarm) {
             <div style="text-align: center; padding: 40px 20px; color: #94A3B8;">
               <div style="font-size: 32px; margin-bottom: 10px;">💾</div>
               <div style="font-size: 15px; font-weight: 700;">저장된 농가 중간 데이터가 없습니다.</div>
-              <div style="font-size: 12px; margin-top: 4px;">입력 센터 상단의 [💾 농가별 데이터 중간 저장] 버튼을 눌러 중간본을 저장해 보세요.</div>
+              <div style="font-size: 12px; margin-top: 4px;">입력 센터 상단의 [💾 현재 농가 데이터 중간 저장] 버튼을 눌러 중간본을 저장해 보세요.</div>
             </div>
           ` : `
             <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -251,30 +251,37 @@ export function openFarmDraftModal(onLoadDraft, onNewFarm) {
       </div>
     `;
 
-    // Bind event handlers inside modal
-    document.getElementById('draft-btn-close').addEventListener('click', () => {
-      document.body.removeChild(modalOverlay);
-    });
+    // Bind event handlers inside modal with e.currentTarget / closest
+    const btnClose = modalOverlay.querySelector('#draft-btn-close');
+    if (btnClose) {
+      btnClose.addEventListener('click', () => {
+        try { document.body.removeChild(modalOverlay); } catch(e) {}
+      });
+    }
 
-    document.getElementById('draft-btn-new-farm').addEventListener('click', () => {
-      document.body.removeChild(modalOverlay);
-      if (onNewFarm) onNewFarm();
-    });
+    const btnNewFarm = modalOverlay.querySelector('#draft-btn-new-farm');
+    if (btnNewFarm) {
+      btnNewFarm.addEventListener('click', () => {
+        try { document.body.removeChild(modalOverlay); } catch(e) {}
+        if (onNewFarm) onNewFarm();
+      });
+    }
 
     const btnAuto = modalOverlay.querySelector('.btn-restore-autosave');
     if (btnAuto && autoSave) {
       btnAuto.addEventListener('click', () => {
-        document.body.removeChild(modalOverlay);
+        try { document.body.removeChild(modalOverlay); } catch(e) {}
         if (onLoadDraft) onLoadDraft(autoSave);
       });
     }
 
     modalOverlay.querySelectorAll('.btn-load-draft').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const id = e.target.getAttribute('data-id');
+        const btnEl = e.currentTarget || e.target.closest('.btn-load-draft');
+        const id = btnEl ? btnEl.getAttribute('data-id') : null;
         const targetDraft = getFarmDrafts().find(d => d.id === id);
         if (targetDraft) {
-          document.body.removeChild(modalOverlay);
+          try { document.body.removeChild(modalOverlay); } catch(e) {}
           if (onLoadDraft) onLoadDraft(targetDraft);
         }
       });
@@ -282,9 +289,12 @@ export function openFarmDraftModal(onLoadDraft, onNewFarm) {
 
     modalOverlay.querySelectorAll('.btn-del-draft').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const id = e.target.getAttribute('data-id');
-        deleteFarmDraft(id);
-        renderModalContent();
+        const btnEl = e.currentTarget || e.target.closest('.btn-del-draft');
+        const id = btnEl ? btnEl.getAttribute('data-id') : null;
+        if (id) {
+          deleteFarmDraft(id);
+          renderModalContent();
+        }
       });
     });
   }
