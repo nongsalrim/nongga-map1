@@ -48,6 +48,11 @@ export function saveFarmDraft(farmState, costItemsState, assetsState, loansState
  * 2. 저장된 모든 농가 draft 목록 조회
  */
 export function getFarmDrafts() {
+  const isSharedLink = typeof window !== 'undefined' && Boolean(new URLSearchParams(window.location.search).get('data'));
+  if (isSharedLink) {
+    // [보안 헌법 제3조] 외부 공유 링크 접속 시 타 농가 저장 데이터 목록 격리 및 접근 차단
+    return [];
+  }
   try {
     const data = localStorage.getItem(DRAFT_STORAGE_KEY);
     return data ? JSON.parse(data) : [];
