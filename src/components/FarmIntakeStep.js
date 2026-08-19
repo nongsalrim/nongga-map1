@@ -1,9 +1,16 @@
 /**
  * @file FarmIntakeStep.js
- * @description 농가 경영체 정밀 데이터 입력 스키마 (경영분석 대상 농가 실제 매출/소득/단가/생산량 직접 입력 기능 내장)
+ * @description 농가 경영체 정밀 데이터 입력 스키마 (농가별 데이터 중간 저장, 실시간 자동 저장 및 불러오기 엔진 내장)
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
+import { 
+  saveFarmDraft, 
+  getFarmDrafts, 
+  autoSaveFarmDraft, 
+  getAutoSaveDraft, 
+  openFarmDraftModal 
+} from './FarmDraftModal.js';
 
 export function renderFarmIntakeStep(container, currentModel, currentAssets, currentLoans, onSubmit) {
   let selectedCropKey = currentModel.cropName ? currentModel.cropName.replace('업로드: ', '') : '시설딸기(수경)';
@@ -39,6 +46,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
   let costItemsState = currentModel.costItemsState || null;
   let toastMsg = null;
+  let lastAutoSaveTime = null;
 
   // Utility formatters
   const parseNum = (val) => {
@@ -56,6 +64,11 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const formattedNum = (Math.round(million * 10) / 10).toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     return `${formattedNum}만 원`;
   };
+
+  // Auto save trigger function
+  function triggerAutoSave() {
+    lastAutoSaveTime = autoSaveFarmDraft(farmState, costItemsState, assetsState, loansState);
+  }
 
   // Calculate 5-Year Debt Repayment Schedule
   function calc5YearSchedule(loans) {
@@ -201,6 +214,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     };
 
     toastMsg = `✅ [농진청/산림청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 기준) 표준 예산 및 매출 복원 완료!`;
+    triggerAutoSave();
   }
 
   function renderForm() {
@@ -274,6 +288,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       ? allCrops 
       : allCrops.filter(k => (FULL_CROP_DATABASE[k].category || '기타') === farmState.category);
 
+    const savedDrafts = getFarmDrafts();
+
     container.innerHTML = `
       <div style="max-width: 1300px; margin: 0 auto; padding-bottom: 60px;">
         
@@ -286,6 +302,27 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           <p style="font-size: 14px; color: #94A3B8; margin: 0 auto; max-width: 880px;">
             성실하게 관리한 정확한 데이터는 내 농장의 현재와 미래를 결정합니다.
           </p>
+        </div>
+
+        <!-- 💾 농가별 데이터 중간 저장 & 불러오기 관리 컨트롤 바 -->
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 14px; font-weight: 800; color: #10B981; display: flex; align-items: center; gap: 6px;">
+              💾 농가별 데이터 중간 저장 관리
+            </span>
+            <span id="draft-auto-save-status" style="font-size: 11.5px; color: #A7F3D0; background: rgba(16,185,129,0.2); padding: 3px 8px; border-radius: 6px; font-weight: 700;">
+              ${lastAutoSaveTime ? `⚡ 실시간 자동 저장 완료 (${lastAutoSaveTime})` : '⚡ 실시간 자동 저장 작동 중'}
+            </span>
+          </div>
+
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="btn-save-farm-draft" style="background: linear-gradient(135deg, #10B981, #059669); color: #FFF; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 6px;">
+              💾 현재 농가 데이터 중간 저장
+            </button>
+            <button id="btn-open-draft-modal" style="background: rgba(59, 130, 246, 0.2); border: 1px solid #3B82F6; color: #93C5FD; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              📂 저장된 농가 목록 불러오기 (${savedDrafts.length}개)
+            </button>
+          </div>
         </div>
 
         ${toastMsg ? `
@@ -717,8 +754,67 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const closeToast = document.getElementById('close-toast-btn');
     if (closeToast) closeToast.addEventListener('click', () => { toastMsg = null; renderForm(); });
 
-    document.getElementById('ex-farm-name').addEventListener('change', (e) => { farmState.farmName = e.target.value; });
-    document.getElementById('ex-region').addEventListener('change', (e) => { farmState.region = e.target.value; });
+    // Draft save & modal event handlers
+    const btnSaveDraft = document.getElementById('btn-save-farm-draft');
+    if (btnSaveDraft) {
+      btnSaveDraft.addEventListener('click', () => {
+        const saved = saveFarmDraft(farmState, costItemsState, assetsState, loansState);
+        if (saved) {
+          toastMsg = `💾 [${saved.name}] 데이터가 중간 저장 목록에 성공적으로 저장되었습니다!`;
+          renderForm();
+        }
+      });
+    }
+
+    const btnOpenDraftModal = document.getElementById('btn-open-draft-modal');
+    if (btnOpenDraftModal) {
+      btnOpenDraftModal.addEventListener('click', () => {
+        openFarmDraftModal(
+          (loadedDraft) => {
+            if (loadedDraft && loadedDraft.farmState) {
+              farmState = loadedDraft.farmState;
+              if (loadedDraft.costItemsState) costItemsState = loadedDraft.costItemsState;
+              if (loadedDraft.assetsState) assetsState = loadedDraft.assetsState;
+              if (loadedDraft.loansState) loansState = loadedDraft.loansState;
+              toastMsg = `📂 [${loadedDraft.name || loadedDraft.farmState.farmName}] 저장 데이터 불러오기 완료!`;
+              triggerAutoSave();
+              renderForm();
+            }
+          },
+          () => {
+            // New Farm Reset
+            farmState = {
+              farmName: '신규 농가',
+              region: '충남',
+              category: '시설채소',
+              cropName: '시설딸기(수경)',
+              areaPyung: 1000,
+              areaM2: 3306,
+              cycles: 1,
+              customRevenue: null,
+              customPricePerKg: null,
+              customYieldKg: null
+            };
+            assetsState = [];
+            loansState = [];
+            costItemsState = null;
+            applyRdaBenchmarkToInputs();
+            toastMsg = `🆕 신규 농가 입력 양식이 초기화되었습니다.`;
+            renderForm();
+          }
+        );
+      });
+    }
+
+    // Input handlers with auto-save trigger
+    document.getElementById('ex-farm-name').addEventListener('change', (e) => { 
+      farmState.farmName = e.target.value; 
+      triggerAutoSave();
+    });
+    document.getElementById('ex-region').addEventListener('change', (e) => { 
+      farmState.region = e.target.value; 
+      triggerAutoSave();
+    });
 
     document.getElementById('ex-category').addEventListener('change', (e) => {
       farmState.category = e.target.value;
@@ -769,6 +865,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         farmState.customRevenue = null;
         farmState.customPricePerKg = null;
         farmState.customYieldKg = null;
+        triggerAutoSave();
         renderForm();
       });
     }
@@ -777,6 +874,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     if (revenueInput) {
       revenueInput.addEventListener('change', (e) => {
         farmState.customRevenue = parseNum(e.target.value);
+        triggerAutoSave();
         renderForm();
       });
     }
@@ -788,6 +886,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         if (farmState.customYieldKg !== null) {
           farmState.customRevenue = farmState.customPricePerKg * farmState.customYieldKg;
         }
+        triggerAutoSave();
         renderForm();
       });
     }
@@ -799,6 +898,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         if (farmState.customPricePerKg !== null) {
           farmState.customRevenue = farmState.customPricePerKg * farmState.customYieldKg;
         }
+        triggerAutoSave();
         renderForm();
       });
     }
@@ -809,6 +909,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         const idx = Number(e.target.getAttribute('data-idx'));
         costItemsState.variable[idx].cost = parseNum(e.target.value);
         costItemsState.variable[idx].isAutoSynced = false;
+        triggerAutoSave();
         renderForm();
       });
     });
@@ -818,6 +919,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         const idx = Number(e.target.getAttribute('data-idx'));
         costItemsState.fixed[idx].cost = parseNum(e.target.value);
         costItemsState.fixed[idx].isAutoSynced = false;
+        triggerAutoSave();
         renderForm();
       });
     });
@@ -825,6 +927,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     // Asset handlers
     document.getElementById('intake-add-asset-btn').addEventListener('click', () => {
       assetsState.push({ 연번: assetsState.length + 1, 목록: "신규 시설/장비", 구입가: 10000000, 내용년수: 10 });
+      triggerAutoSave();
       renderForm();
     });
 
@@ -832,22 +935,28 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       btn.addEventListener('click', (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         assetsState.splice(idx, 1);
+        triggerAutoSave();
         renderForm();
       });
     });
 
     document.querySelectorAll('.i-asset-name').forEach(inp => {
-      inp.addEventListener('change', (e) => { assetsState[Number(e.target.getAttribute('data-idx'))].목록 = e.target.value; });
+      inp.addEventListener('change', (e) => { 
+        assetsState[Number(e.target.getAttribute('data-idx'))].목록 = e.target.value; 
+        triggerAutoSave();
+      });
     });
     document.querySelectorAll('.i-asset-price').forEach(inp => {
       inp.addEventListener('change', (e) => {
         assetsState[Number(e.target.getAttribute('data-idx'))].구입가 = parseNum(e.target.value);
+        triggerAutoSave();
         renderForm();
       });
     });
     document.querySelectorAll('.i-asset-years').forEach(inp => {
       inp.addEventListener('change', (e) => {
         assetsState[Number(e.target.getAttribute('data-idx'))].내용년수 = parseNum(e.target.value);
+        triggerAutoSave();
         renderForm();
       });
     });
@@ -855,6 +964,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     // Loan handlers
     document.getElementById('intake-add-loan-btn').addEventListener('click', () => {
       loansState.push({ 대출조건: "원리금균등", 은행명: "신규 대출", 대출금액: 50000000, 이자율: 1.5, 대출기간: 10, 거치기간: 2 });
+      triggerAutoSave();
       renderForm();
     });
 
@@ -862,6 +972,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       btn.addEventListener('click', (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         loansState.splice(idx, 1);
+        triggerAutoSave();
         renderForm();
       });
     });
@@ -871,18 +982,23 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         const idx = Number(e.target.getAttribute('data-idx'));
         loansState[idx].대출조건 = e.target.value;
         loansState[idx].대출종류 = e.target.value;
+        triggerAutoSave();
         renderForm();
       });
     });
 
     document.querySelectorAll('.i-loan-name').forEach(inp => {
-      inp.addEventListener('change', (e) => { loansState[Number(e.target.getAttribute('data-idx'))].은행명 = e.target.value; });
+      inp.addEventListener('change', (e) => { 
+        loansState[Number(e.target.getAttribute('data-idx'))].은행명 = e.target.value; 
+        triggerAutoSave();
+      });
     });
     document.querySelectorAll('.i-loan-amount').forEach(inp => {
       inp.addEventListener('change', (e) => {
         const idx = Number(e.target.getAttribute('data-idx'));
         loansState[idx].대출금액 = parseNum(e.target.value);
         loansState[idx].amount = parseNum(e.target.value);
+        triggerAutoSave();
         renderForm();
       });
     });
@@ -892,6 +1008,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         const val = parseNum(e.target.value);
         loansState[idx].이자율 = val > 1 ? val / 100 : val;
         loansState[idx].rate = val > 1 ? val / 100 : val;
+        triggerAutoSave();
         renderForm();
       });
     });
@@ -900,6 +1017,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         const idx = Number(e.target.getAttribute('data-idx'));
         loansState[idx].대출기간 = parseNum(e.target.value);
         loansState[idx].period = parseNum(e.target.value);
+        triggerAutoSave();
         renderForm();
       });
     });
@@ -908,6 +1026,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         const idx = Number(e.target.getAttribute('data-idx'));
         loansState[idx].거치기간 = parseNum(e.target.value);
         loansState[idx].grace = parseNum(e.target.value);
+        triggerAutoSave();
         renderForm();
       });
     });
@@ -943,6 +1062,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         kamisData: baseCropModel.kamisData
       };
 
+      saveFarmDraft(farmState, costItemsState, assetsState, loansState);
       if (onSubmit) onSubmit(finalModel, assetsState, loansState, true);
     });
   }
