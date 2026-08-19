@@ -13,7 +13,7 @@ import {
   openFarmDraftModal 
 } from './FarmDraftModal.js';
 
-export function renderFarmIntakeStep(container, currentModel, currentAssets, currentLoans, onSubmit) {
+export function renderFarmIntakeStep(container, currentModel, currentAssets, currentLoans, onSubmit, onCropChange, onDraftLoad) {
   let selectedCropKey = currentModel.cropName ? currentModel.cropName.replace('업로드: ', '') : '시설딸기(수경)';
   if (!FULL_CROP_DATABASE[selectedCropKey]) selectedCropKey = '시설딸기(수경)';
 
@@ -291,10 +291,16 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       return acc;
     }, {});
 
-    if (!costItemsState || costItemsState._cropName !== farmState.cropName || costItemsState._scale !== totalScaleFactor) {
+    const isCropChanged = costItemsState && costItemsState._cropName && costItemsState._cropName !== farmState.cropName && !costItemsState._isLoadedFromDraft;
+    
+    if (!costItemsState || isCropChanged) {
       applyRdaBenchmarkToInputs();
     } else {
-      const depItem = costItemsState.fixed.find(i => i.name === '시설/대농구 상각비');
+      costItemsState._cropName = farmState.cropName;
+      costItemsState._scale = totalScaleFactor;
+      delete costItemsState._isLoadedFromDraft;
+
+      const depItem = costItemsState.fixed.find(i => i.name === '시설/대농구 상각비' || i.name.includes('상각비'));
       if (depItem && assetMetrics.totalAnnualDep > 0) {
         depItem.cost = assetMetrics.totalAnnualDep;
         depItem.isAutoSynced = true;
@@ -911,11 +917,50 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           (loadedDraft) => {
             if (loadedDraft && loadedDraft.farmState) {
               farmState = loadedDraft.farmState;
-              if (loadedDraft.costItemsState) costItemsState = loadedDraft.costItemsState;
+              if (loadedDraft.costItemsState) {
+                costItemsState = loadedDraft.costItemsState;
+                costItemsState._isLoadedFromDraft = true;
+              }
               if (loadedDraft.assetsState) assetsState = loadedDraft.assetsState;
               if (loadedDraft.loansState) loansState = loadedDraft.loansState;
+
+              if (!FULL_CROP_DATABASE[farmState.cropName]) {
+                const cropKeys = Object.keys(FULL_CROP_DATABASE);
+                const matched = cropKeys.find(k => k.includes(farmState.cropName)) || '시설딸기(수경)';
+                farmState.cropName = matched;
+              }
+
               toastMsg = `📂 [${loadedDraft.name || loadedDraft.farmState.farmName}] 저장 데이터 불러오기 완료!`;
               triggerAutoSave();
+
+              if (onDraftLoad) {
+                const combinedCostBreakdown = [
+                  ...(costItemsState ? costItemsState.variable : []).map(i => ({ name: i.name, cost: parseNum(i.cost), percent: 0 })),
+                  ...(costItemsState ? costItemsState.fixed : []).map(i => ({ name: i.name, cost: parseNum(i.cost), percent: 0 }))
+                ];
+                const draftModel = {
+                  category: farmState.category,
+                  cropName: farmState.cropName,
+                  farmOwner: farmState.farmName,
+                  region: farmState.region,
+                  areaPyung: farmState.areaPyung,
+                  areaM2: farmState.areaM2,
+                  cycles: farmState.cycles,
+                  revenue: (farmState.revRaw || 0) + (farmState.revByproduct || 0) + (farmState.revProcessed || 0) + (farmState.revExperience || 0),
+                  revenueBreakdown: {
+                    raw: farmState.revRaw,
+                    byproduct: farmState.revByproduct,
+                    processed: farmState.revProcessed,
+                    experience: farmState.revExperience
+                  },
+                  costItemsState: costItemsState,
+                  costBreakdown: combinedCostBreakdown,
+                  yieldKg: farmState.customYieldKg,
+                  pricePerKg: farmState.customPricePerKg
+                };
+                onDraftLoad(draftModel, assetsState, loansState);
+              }
+
               renderForm();
             }
           },
