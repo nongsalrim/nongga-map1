@@ -445,7 +445,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             <table class="data-table" style="text-align: center; border-collapse: separate; border-spacing: 0;">
               <thead>
                 <tr style="background: rgba(59, 130, 246, 0.2); color: #93C5FD; font-size:14px;">
-                  <th style="padding:12px; text-align:center;">농가명</th>
+                  <th style="padding:12px; text-align:center;">농가명 (대표자 성함)</th>
                   <th style="padding:12px; text-align:center;">지역</th>
                   <th style="padding:12px; text-align:center;">작목분류</th>
                   <th style="padding:12px; text-align:center; min-width:140px;">작목명</th>
@@ -457,7 +457,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               <tbody>
                 <tr style="background: rgba(255,255,255,0.03);">
                   <td style="padding:10px;">
-                    <input type="text" id="ex-farm-name" value="${farmState.farmName}" placeholder="예: 공주시" style="text-align:center; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700;" />
+                    <input type="text" id="ex-farm-name" value="${farmState.farmName}" placeholder="예: 안동현" style="text-align:center; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700;" />
                   </td>
                   <td style="padding:10px;">
                     <select id="ex-region" style="padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; text-align:center; font-size:14px; font-weight:600;">
