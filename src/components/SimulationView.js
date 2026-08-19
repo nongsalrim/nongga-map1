@@ -9,9 +9,10 @@ import { openSimulationModal, exportSimulationExcel } from './SimulationDetailMo
 export function renderSimulation(container, model) {
   let priceMult = 1.0;
   let areaMult = 1.0;
+  let yieldMult = 1.0;
 
   function updateView() {
-    const simData = calculateSimulatedPlan(model, priceMult, areaMult);
+    const simData = calculateSimulatedPlan(model, priceMult, areaMult, yieldMult);
     const formatMoney = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(val || 0)) + ' 원';
 
     container.innerHTML = `
@@ -41,6 +42,7 @@ export function renderSimulation(container, model) {
               </div>
             </div>
 
+            <!-- 슬라이더 1: 판매 단가 변동률 -->
             <div class="slider-group" style="margin-top:16px;">
               <div class="slider-header" style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; color:#E2E8F0;">
                 <span>판매 단가 변동률:</span>
@@ -49,12 +51,22 @@ export function renderSimulation(container, model) {
               <input type="range" id="price-slider" class="slider-input" min="0.7" max="1.5" step="0.05" value="${priceMult}" style="width:100%; margin-top:8px;">
             </div>
 
-            <div class="slider-group" style="margin-bottom:24px; margin-top:16px;">
+            <!-- 슬라이더 2: 재배 면적 확장률 -->
+            <div class="slider-group" style="margin-top:16px;">
               <div class="slider-header" style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; color:#E2E8F0;">
                 <span>재배 면적 확장률:</span>
                 <strong style="color:#60A5FA; font-size:18px; font-weight:900;">${Math.round((areaMult - 1) * 100)}%</strong>
               </div>
               <input type="range" id="area-slider" class="slider-input" min="0.5" max="2.0" step="0.1" value="${areaMult}" style="width:100%; margin-top:8px;">
+            </div>
+
+            <!-- 슬라이더 3 (신규): 농산물 생산량/수량 증가율 -->
+            <div class="slider-group" style="margin-bottom:24px; margin-top:16px;">
+              <div class="slider-header" style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; color:#E2E8F0;">
+                <span>🌾 농산물 생산 수량 변동률:</span>
+                <strong style="color:#FBBF24; font-size:18px; font-weight:900;">${Math.round((yieldMult - 1) * 100)}%</strong>
+              </div>
+              <input type="range" id="yield-slider" class="slider-input" min="0.5" max="2.0" step="0.05" value="${yieldMult}" style="width:100%; margin-top:8px;">
             </div>
 
             <div style="background: rgba(15, 23, 42, 0.7); border:1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 14px; display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
@@ -120,7 +132,7 @@ export function renderSimulation(container, model) {
                     <td style="text-align:right; font-weight:800; color:#38BDF8; font-family: Pretendard, monospace;">${formatMoney(yp.revenue)}</td>
                     <td style="text-align:right; font-weight:700; color:#F87171; font-family: Pretendard, monospace;">${formatMoney(yp.expense)}</td>
                     <td style="text-align:right; font-weight:900; color:#34D399; font-family: Pretendard, monospace;">${formatMoney(yp.income)}</td>
-                    <td style="text-align:right; font-weight:800; color:#FBBF24;">${Math.round((yp.expense / yp.revenue) * 100)}%</td>
+                    <td style="text-align:right; font-weight:800; color:#FBBF24;">${yp.revenue > 0 ? Math.round((yp.expense / yp.revenue) * 100) : 0}%</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -132,35 +144,49 @@ export function renderSimulation(container, model) {
     `;
 
     // Add Slider Events
-    document.getElementById('price-slider').addEventListener('input', (e) => {
-      priceMult = parseFloat(e.target.value);
-      updateView();
-    });
+    const priceSlider = document.getElementById('price-slider');
+    if (priceSlider) {
+      priceSlider.addEventListener('input', (e) => {
+        priceMult = parseFloat(e.target.value);
+        updateView();
+      });
+    }
 
-    document.getElementById('area-slider').addEventListener('input', (e) => {
-      areaMult = parseFloat(e.target.value);
-      updateView();
-    });
+    const areaSlider = document.getElementById('area-slider');
+    if (areaSlider) {
+      areaSlider.addEventListener('input', (e) => {
+        areaMult = parseFloat(e.target.value);
+        updateView();
+      });
+    }
+
+    const yieldSlider = document.getElementById('yield-slider');
+    if (yieldSlider) {
+      yieldSlider.addEventListener('input', (e) => {
+        yieldMult = parseFloat(e.target.value);
+        updateView();
+      });
+    }
 
     // Export & Modal Event Listeners
     const btnExcel = document.getElementById('btn-sim-export-excel');
     if (btnExcel) {
       btnExcel.addEventListener('click', () => {
-        exportSimulationExcel(simData, model, priceMult, areaMult);
+        exportSimulationExcel(simData, model, priceMult, areaMult, yieldMult);
       });
     }
 
     const btnModal1 = document.getElementById('btn-sim-open-modal');
     if (btnModal1) {
       btnModal1.addEventListener('click', () => {
-        openSimulationModal(model, simData, priceMult, areaMult);
+        openSimulationModal(model, simData, priceMult, areaMult, yieldMult);
       });
     }
 
     const btnModal2 = document.getElementById('btn-sim-open-modal-2');
     if (btnModal2) {
       btnModal2.addEventListener('click', () => {
-        openSimulationModal(model, simData, priceMult, areaMult);
+        openSimulationModal(model, simData, priceMult, areaMult, yieldMult);
       });
     }
 
@@ -179,7 +205,6 @@ export function renderSimulation(container, model) {
                 data: simData.yearProjections.map(y => y.revenue),
                 borderColor: '#10B981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                borderWidth: 3,
                 fill: true,
                 tension: 0.3
               },
@@ -187,17 +212,15 @@ export function renderSimulation(container, model) {
                 label: '경영비 (원)',
                 data: simData.yearProjections.map(y => y.expense),
                 borderColor: '#EF4444',
-                backgroundColor: 'transparent',
-                borderWidth: 2.5,
-                fill: false,
+                backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                fill: true,
                 tension: 0.3
               },
               {
                 label: '농가소득 (원)',
                 data: simData.yearProjections.map(y => y.income),
                 borderColor: '#F59E0B',
-                backgroundColor: 'transparent',
-                borderWidth: 2.5,
+                borderDash: [5, 5],
                 fill: false,
                 tension: 0.3
               }
@@ -211,12 +234,12 @@ export function renderSimulation(container, model) {
               y: { ticks: { color: '#94A3B8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
             },
             plugins: {
-              legend: { labels: { color: '#CBD5E1', font: { family: 'Pretendard', weight: 'bold' } } }
+              legend: { labels: { color: '#94A3B8', font: { family: 'Pretendard' } } }
             }
           }
         });
       } catch (err) {
-        console.warn('Simulation 6-year chart error:', err);
+        console.warn('Simulation chart error:', err);
       }
     }
   }

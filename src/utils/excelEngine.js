@@ -37,9 +37,11 @@ export function parseExcelFile(file) {
   });
 }
 
-export function calculateSimulatedPlan(baseModel, priceMultiplier = 1.0, areaMultiplier = 1.0) {
-  const adjustedRevenue = Math.round(baseModel.revenue * priceMultiplier * areaMultiplier);
-  const adjustedExpenses = Math.round(baseModel.operatingExpenses * areaMultiplier);
+export function calculateSimulatedPlan(baseModel, priceMultiplier = 1.0, areaMultiplier = 1.0, yieldMultiplier = 1.0) {
+  const adjustedRevenue = Math.round(baseModel.revenue * priceMultiplier * areaMultiplier * yieldMultiplier);
+  const variableCosts = baseModel.operatingExpenses * 0.7; // Variable portion scales with area & yield
+  const fixedCosts = baseModel.operatingExpenses * 0.3; // Fixed portion scales with area only
+  const adjustedExpenses = Math.round((variableCosts * areaMultiplier * yieldMultiplier) + (fixedCosts * areaMultiplier));
   const adjustedIncome = adjustedRevenue - adjustedExpenses;
   const adjustedNetProfit = Math.round(adjustedIncome * 0.78); // Estimate after tax & interest
   
@@ -63,7 +65,7 @@ export function calculateSimulatedPlan(baseModel, priceMultiplier = 1.0, areaMul
     expenses: adjustedExpenses,
     income: adjustedIncome,
     netProfit: adjustedNetProfit,
-    bepRate: Math.round((adjustedExpenses / adjustedRevenue) * 100),
+    bepRate: adjustedRevenue > 0 ? Math.round((adjustedExpenses / adjustedRevenue) * 100) : 0,
     yearProjections
   };
 }

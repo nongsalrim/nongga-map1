@@ -17,7 +17,7 @@ const formatComma = (val) => new Intl.NumberFormat('ko-KR').format(Math.round(pa
 /**
  * 6개년 사업계획서 엑셀 다운로드 (SheetJS + UTF-8 BOM CSV Fallback)
  */
-export async function exportSimulationExcel(simData, farmModel, priceMult = 1.0, areaMult = 1.0) {
+export async function exportSimulationExcel(simData, farmModel, priceMult = 1.0, areaMult = 1.0, yieldMult = 1.0) {
   let XLSX = typeof window !== 'undefined' ? window.XLSX : null;
 
   if (!XLSX && typeof document !== 'undefined') {
@@ -38,13 +38,14 @@ export async function exportSimulationExcel(simData, farmModel, priceMult = 1.0,
 
   const pricePercentStr = `${Math.round((priceMult - 1) * 100)}%`;
   const areaPercentStr = `${Math.round((areaMult - 1) * 100)}%`;
+  const yieldPercentStr = `${Math.round((yieldMult - 1) * 100)}%`;
 
   if (window.XLSX) {
     const wb = window.XLSX.utils.book_new();
 
     const sheetData = [
       [`[${farmName}] ${cropName} 6개년 장기 경영실적 추정 사업계획서`],
-      [`시나리오 조건: 판매단가 변동률 ${pricePercentStr} / 재배면적 확장률 ${areaPercentStr}`],
+      [`시나리오 조건: 판매단가 ${pricePercentStr} / 재배면적 ${areaPercentStr} / 생산수량 ${yieldPercentStr}`],
       [`작성일자: ${new Date().toLocaleDateString('ko-KR')}`],
       [],
       ['경영연차', '해당연도', '추정 총수입(매출액)', '추정 경영비(원가)', '추정 농가소득', '누적 농가소득', '손익분기율(BEP)', '전년대비 소득성장률', '비고']
@@ -184,7 +185,7 @@ export async function exportSimulationExcel(simData, farmModel, priceMult = 1.0,
 /**
  * 6개년 사업계획서 출력창 / 모달 렌더링
  */
-export function openSimulationModal(farmModel, simData, priceMult = 1.0, areaMult = 1.0) {
+export function openSimulationModal(farmModel, simData, priceMult = 1.0, areaMult = 1.0, yieldMult = 1.0) {
   const farmName = farmModel.farmOwner || farmModel.farmName || '공주시';
   const cropName = farmModel.cropName || '시설딸기(수경)';
   const currentYear = new Date().getFullYear();
@@ -192,6 +193,7 @@ export function openSimulationModal(farmModel, simData, priceMult = 1.0, areaMul
 
   const pricePercentStr = `${Math.round((priceMult - 1) * 100)}%`;
   const areaPercentStr = `${Math.round((areaMult - 1) * 100)}%`;
+  const yieldPercentStr = `${Math.round((yieldMult - 1) * 100)}%`;
 
   const totalRev = yearProjections.reduce((sum, y) => sum + parseNum(y.revenue), 0);
   const totalExp = yearProjections.reduce((sum, y) => sum + parseNum(y.expense), 0);
