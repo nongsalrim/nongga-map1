@@ -35,8 +35,8 @@ export function openFarmShareLinkModal(model, activeTab = 'survey') {
 
   const base64Data = btoa(encodeURIComponent(JSON.stringify(payloadObj)));
 
-  // Default Base Domain
-  let defaultDomain = 'https://nongga-map1.vercel.app';
+  // Default Base Domain (Vercel Live URL)
+  let defaultDomain = 'https://temporary-fleet-aurora-o269zz8.vercel.app';
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
     defaultDomain = window.location.origin;
   }
