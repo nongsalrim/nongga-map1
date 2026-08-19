@@ -1,20 +1,74 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>농가살림연구소 - 경영분석 자동화 솔루션 (MAP1)</title>
-  <meta name="description" content="농가살림연구소(주) 공식 경영분석 자동화 및 컨설팅 솔루션 플랫폼">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>농가살림연구소(주) | 농가 경영진단 & 6차 산업 컨설팅 플랫폼</title>
   
-  <!-- Pretendard Font & Chart.js & SheetJS -->
+  <!-- SEO & Open Graph Meta Tags -->
+  <meta name="description" content="농가의 지속가능한 성장을 연구하고 교육, 컨설팅, 경영진단 성과를 축적하는 농업 전문 연구기관 농가살림연구소(주) 공식 플랫폼입니다." />
+  <meta property="og:title" content="농가살림연구소(주) | 농가 경영진단 & 6차 산업 컨설팅 플랫폼" />
+  <meta property="og:description" content="지역과 함께 가치를 창출하고 농업인과 더불어 성장하는 농가 맞춤 경영컨설팅그룹 농가살림연구소(주)" />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+
+  <!-- Google Web Fonts (Pretendard CDN) -->
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <!-- Chart.js & SheetJS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <link rel="stylesheet" href="/src/styles/main.css">
+  <!-- 모듈형 CSS 디렉토리 로드 -->
+  <link rel="stylesheet" href="./src/styles/variables.css" />
+  <link rel="stylesheet" href="./src/styles/main.css" />
+  <link rel="stylesheet" href="./src/styles/components.css" />
+  <link rel="stylesheet" href="./src/styles/pages.css" />
 </head>
 <body>
-  <div id="app"></div>
-  <script type="module" src="/src/main.js"></script>
+  <div id="app">
+    <!-- 농가 경영 및 6차 융복합 컨설팅 상징 로딩 화면 -->
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Pretendard', -apple-system, sans-serif; background: linear-gradient(135deg, #0F172A, #1E293B); color: #FFF; padding: 20px;">
+      <div style="text-align: center; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(16, 185, 129, 0.4); padding: 40px 48px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); backdrop-filter: blur(12px); max-width: 480px; width: 100%;">
+        
+        <!-- 농가 경영 상징 아이콘 뱃지 그룹 -->
+        <div style="display: flex; justify-content: center; align-items: center; gap: 14px; margin-bottom: 20px;">
+          <div style="width: 54px; height: 54px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+            🌾
+          </div>
+          <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #10B981, #059669); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 6px 20px rgba(16,185,129,0.4);">
+            📊
+          </div>
+          <div style="width: 54px; height: 54px; background: rgba(59, 130, 246, 0.15); border: 1px solid #3B82F6; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">
+            🏢
+          </div>
+        </div>
+
+        <span style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16,185,129,0.4); padding: 4px 14px; border-radius: 12px; font-size: 12px; font-weight: 800; display: inline-block; margin-bottom: 12px; letter-spacing: 0.5px;">
+          FARM BUSINESS CONSULTING PLATFORM
+        </span>
+
+        <h2 style="font-size: 24px; font-weight: 900; color: #FFF; margin-bottom: 8px; letter-spacing: -0.5px;">
+          농가살림연구소(주)
+        </h2>
+
+        <p style="font-size: 13.5px; color: #94A3B8; margin-top: 4px; font-weight: 500; line-height: 1.5;">
+          🌾 1·2·3차 융복합 농가 경영진단 & 원가분석 솔루션 구동 중...
+        </p>
+
+        <!-- 프로그레스 바 스피너 -->
+        <div style="margin-top: 24px; display: flex; justify-content: center; align-items: center; gap: 8px;">
+          <div style="width: 8px; height: 8px; background: #10B981; border-radius: 50%; animation: pulse 1s infinite alternate;"></div>
+          <div style="width: 8px; height: 8px; background: #3B82F6; border-radius: 50%; animation: pulse 1s infinite alternate 0.3s;"></div>
+          <div style="width: 8px; height: 8px; background: #FBBF24; border-radius: 50%; animation: pulse 1s infinite alternate 0.6s;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ES 모듈형 JavaScript 진입점 -->
+  <script type="module" src="./src/main.js"></script>
 </body>
 </html>

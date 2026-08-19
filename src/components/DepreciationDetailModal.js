@@ -206,6 +206,7 @@ export async function exportDepreciationExcel(schedule, farmName = '농가') {
   document.body.removeChild(link);
 }
 
+export { openDepreciationModal as renderDepreciationDetailModal };
 export function openDepreciationModal(farmModel, assetsList) {
   const farmName = farmModel.farmOwner || farmModel.farmName || '농가';
   const schedule = calc5YearDepreciationSchedule(assetsList);
