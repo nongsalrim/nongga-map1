@@ -456,32 +456,32 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               </thead>
               <tbody>
                 <tr style="background: rgba(255,255,255,0.03);">
-                  <td style="padding:10px;">
+                  <td data-label="👨‍🌾 농가명 (대표자 성함)" style="padding:10px;">
                     <input type="text" id="ex-farm-name" value="${farmState.farmName}" placeholder="예: 안동현" style="text-align:center; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700;" />
                   </td>
-                  <td style="padding:10px;">
+                  <td data-label="📍 지역" style="padding:10px;">
                     <select id="ex-region" style="padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; text-align:center; font-size:14px; font-weight:600;">
                       ${['충남', '충북', '전남', '전북', '경남', '경북', '경기', '강원', '제주'].map(r => `<option value="${r}" ${farmState.region === r ? 'selected' : ''}>${r}</option>`).join('')}
                     </select>
                   </td>
-                  <td style="padding:10px;">
+                  <td data-label="🏷️ 작목분류" style="padding:10px;">
                     <select id="ex-category" style="padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; text-align:center; font-size:14px; font-weight:600;">
                       <option value="전체" ${farmState.category === '전체' ? 'selected' : ''}>전체분류</option>
                       ${categories.map(cat => `<option value="${cat}" ${farmState.category === cat ? 'selected' : ''}>${cat}</option>`).join('')}
                     </select>
                   </td>
-                  <td style="padding:10px;">
+                  <td data-label="🌾 작목명" style="padding:10px;">
                     <select id="ex-crop-name" style="padding:10px; background:#0F172A; border:1px solid #10B981; color:#10B981; border-radius:8px; width:100%; text-align:center; font-size:14px; font-weight:800;">
                       ${filteredCrops.map(c => `<option value="${c}" ${farmState.cropName === c ? 'selected' : ''}>${c}</option>`).join('')}
                     </select>
                   </td>
-                  <td style="padding:10px;">
+                  <td data-label="📐 면적(㎡)" style="padding:10px;">
                     <input type="text" id="ex-area-m2" value="${formatComma(farmState.areaM2)}" style="text-align:right; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700; font-family: Pretendard, monospace;" />
                   </td>
-                  <td style="padding:10px;">
+                  <td data-label="📐 면적(평)" style="padding:10px;">
                     <input type="text" id="ex-area-pyung" value="${formatComma(farmState.areaPyung)}" style="text-align:right; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700; font-family: Pretendard, monospace;" />
                   </td>
-                  <td style="padding:10px;">
+                  <td data-label="🔄 기작 수" style="padding:10px;">
                     <input type="text" id="ex-cycles" value="${formatComma(farmState.cycles)}" style="text-align:right; padding:10px; background:#0F172A; border:1px solid rgba(255,255,255,0.2); color:#FFF; border-radius:8px; width:100%; font-size:14px; font-weight:700; font-family: Pretendard, monospace;" />
                   </td>
                 </tr>
