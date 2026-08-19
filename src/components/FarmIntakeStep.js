@@ -1,6 +1,7 @@
 /**
  * @file FarmIntakeStep.js
- * @description 농가 경영체 정밀 데이터 입력 스키마 (농가별 데이터 중간 저장, 실시간 자동 저장 및 불러오기 엔진 내장)
+ * @description 농가 경영체 정밀 데이터 입력 스키마
+ * (원물 1차산물 + 모종/부산물 1차산물 + 가공품 2차산물 + 체험/서비스 3차산물 6차산업 정밀 매출 구성을 포함한 통합 경영분석 엔진)
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -28,7 +29,12 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     cycles: currentModel.cycles || 1,
     customRevenue: currentModel.revenue !== undefined ? currentModel.revenue : null,
     customPricePerKg: currentModel.pricePerKg !== undefined ? currentModel.pricePerKg : null,
-    customYieldKg: currentModel.yieldKg !== undefined ? currentModel.yieldKg : null
+    customYieldKg: currentModel.yieldKg !== undefined ? currentModel.yieldKg : null,
+    // 6차 산업 (1차 원물 + 1차 모종/부산물 + 2차 가공품 + 3차 체험/서비스) 매출액
+    revRaw: (currentModel.revenueBreakdown && currentModel.revenueBreakdown.raw !== undefined) ? currentModel.revenueBreakdown.raw : null,
+    revByproduct: (currentModel.revenueBreakdown && currentModel.revenueBreakdown.byproduct !== undefined) ? currentModel.revenueBreakdown.byproduct : 0,
+    revProcessed: (currentModel.revenueBreakdown && currentModel.revenueBreakdown.processed !== undefined) ? currentModel.revenueBreakdown.processed : 0,
+    revExperience: (currentModel.revenueBreakdown && currentModel.revenueBreakdown.experience !== undefined) ? currentModel.revenueBreakdown.experience : 0
   };
 
   let assetsState = JSON.parse(JSON.stringify(currentAssets || []));
@@ -166,6 +172,10 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     farmState.customRevenue = null;
     farmState.customPricePerKg = null;
     farmState.customYieldKg = null;
+    farmState.revRaw = null;
+    farmState.revByproduct = 0;
+    farmState.revProcessed = 0;
+    farmState.revExperience = 0;
 
     const totalAssetsDepreciation = assetsState.reduce((sum, a) => {
       const price = parseNum(a.구입가) || 0;
@@ -213,7 +223,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       ]
     };
 
-    toastMsg = `✅ [농진청/산림청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 기준) 표준 예산 및 매출 복원 완료!`;
+    toastMsg = `✅ [농진청/산림청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 기준) 표준 예산 및 원물 매출 복원 완료!`;
     triggerAutoSave();
   }
 
@@ -273,10 +283,23 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const totalFixedExpenses = costItemsState.fixed.reduce((sum, item) => sum + (parseNum(item.cost) || 0), 0);
     const calculatedExpenses = totalVariableExpenses + totalFixedExpenses;
 
-    const actualRevenue = farmState.customRevenue !== null ? farmState.customRevenue : calculatedRevenue;
     const actualPricePerKg = farmState.customPricePerKg !== null ? farmState.customPricePerKg : (baseCropModel.pricePerKg || 2500);
     const actualYieldKg = farmState.customYieldKg !== null ? farmState.customYieldKg : Math.round((baseCropModel.yieldKg || 10000) * totalScaleFactor);
-    const actualIncome = actualRevenue - calculatedExpenses;
+
+    // 1차 원물 매출 기본값: 수취단가 * 생산량 (또는 사용자가 세부입력한 값)
+    const revRaw = farmState.revRaw !== null ? farmState.revRaw : Math.round(actualPricePerKg * actualYieldKg);
+    const revByproduct = parseNum(farmState.revByproduct);
+    const revProcessed = parseNum(farmState.revProcessed);
+    const revExperience = parseNum(farmState.revExperience);
+
+    // 6차 산업 1·2·3차 산물 합산 총수입
+    const totalActualRevenue = revRaw + revByproduct + revProcessed + revExperience;
+    const actualIncome = totalActualRevenue - calculatedExpenses;
+
+    const rawShare = totalActualRevenue > 0 ? ((revRaw / totalActualRevenue) * 100).toFixed(1) : 0;
+    const byproductShare = totalActualRevenue > 0 ? ((revByproduct / totalActualRevenue) * 100).toFixed(1) : 0;
+    const processedShare = totalActualRevenue > 0 ? ((revProcessed / totalActualRevenue) * 100).toFixed(1) : 0;
+    const experienceShare = totalActualRevenue > 0 ? ((revExperience / totalActualRevenue) * 100).toFixed(1) : 0;
 
     const totalLoansAmount = loansState.reduce((sum, l) => sum + (parseNum(l.대출금액 || l.amount || l.원금) || 0), 0);
     const schedule5Years = calc5YearSchedule(loansState);
@@ -391,15 +414,15 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
             </table>
           </div>
 
-          <!-- 🎯 경영분석 대상 농가 실제 매출액 & 농가소득 직접 입력 컨트롤 패널 -->
+          <!-- 🎯 경영분석 대상 농가 실제 매출액 & 6차 산업 1·2·3차 산물 세부 입력 패널 -->
           <div style="margin-top: 20px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 14px; padding: 20px; color: #FFF;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
               <div>
                 <span style="font-size: 15px; font-weight: 800; color: #60A5FA; display:flex; align-items:center; gap:6px;">
-                  🎯 1-1. 경영분석 대상 농가 실제 경영 실적 (총수입·농가소득·단가·생산량) 직접 입력
+                  🎯 1-1. 경영분석 대상 농가 실제 경영 실적 & 6차 산업 (1차·2차·3차 산물) 정밀 매출 입력
                 </span>
                 <p style="font-size:12px; color:#94A3B8; margin-top:2px;">
-                  분석 대상 농가의 <b>실제 총수입(매출액)</b> 및 <b>농가 수취단가 / 생산량</b>을 직접 입력하시면 <b>실제 농가소득</b>이 자동 분석됩니다.
+                  원물 판매(1차) 외 <b>모종/부산물(1차), 가공품(2차), 체험/관광/서비스(3차)</b> 매출액을 입력하시면 <b>총 매출액과 실제 농가소득</b>이 자동 분석됩니다.
                 </p>
               </div>
               <button id="btn-reset-actual-revenue" style="background: rgba(59,130,246,0.2); border:1px solid #3B82F6; color:#93C5FD; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">
@@ -407,13 +430,14 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               </button>
             </div>
 
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+            <!-- 상단 요약 KPI 4개 카드 -->
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px;">
               
-              <!-- 1. 대상 농가 실제 총수입 (매출액) 직접 입력 -->
+              <!-- 1. 대상 농가 6차 융복합 경영 총수입 (매출액) -->
               <div style="background:#0F172A; padding:14px 16px; border-radius:10px; border:1px solid #3B82F6;">
-                <div style="font-size:12px; color:#93C5FD; font-weight:700;">🎯 대상 농가 실제 총수입 (매출액)</div>
-                <input type="text" id="ex-actual-revenue" value="${formatComma(actualRevenue)}" style="text-align:right; padding:8px 10px; background:#1E293B; border:1px solid #3B82F6; color:#38BDF8; border-radius:6px; width:100%; font-size:17px; font-weight:900; margin-top:6px; font-family: Pretendard, monospace;" />
-                <div style="font-size:10.5px; color:#64748B; margin-top:4px;">농진청 표준 추정액: ${formatShortMoney(calculatedRevenue)}</div>
+                <div style="font-size:12px; color:#93C5FD; font-weight:700;">🎯 6차 융복합 경영 총수입 (매출합계)</div>
+                <input type="text" id="ex-actual-revenue" value="${formatComma(totalActualRevenue)}" style="text-align:right; padding:8px 10px; background:#1E293B; border:1px solid #3B82F6; color:#38BDF8; border-radius:6px; width:100%; font-size:17px; font-weight:900; margin-top:6px; font-family: Pretendard, monospace;" />
+                <div style="font-size:10.5px; color:#64748B; margin-top:4px;">농진청 원물 표준액: ${formatShortMoney(calculatedRevenue)}</div>
               </div>
 
               <!-- 2. 대상 농가 총 경영비 (원가합계 - 자동연동) -->
@@ -431,27 +455,106 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 <div style="font-size:18px; font-weight:900; color:#10B981; margin-top:10px; text-align:right; font-family: Pretendard, monospace;">
                   ${formatMoney(actualIncome)}
                 </div>
-                <div style="font-size:10.5px; color:#64748B; margin-top:4px;">소득률: ${actualRevenue > 0 ? ((actualIncome / actualRevenue) * 100).toFixed(1) : 0}%</div>
+                <div style="font-size:10.5px; color:#64748B; margin-top:4px;">소득률: ${totalActualRevenue > 0 ? ((actualIncome / totalActualRevenue) * 100).toFixed(1) : 0}%</div>
               </div>
 
-              <!-- 4. 실제 수취 단가 & 생산량 직접 입력 -->
+              <!-- 4. 실제 원물 수취 단가 & 생산량 직접 입력 -->
               <div style="background:#0F172A; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.15);">
                 <div style="display:flex; justify-content:space-between; gap:8px;">
                   <div style="flex:1;">
-                    <div style="font-size:11px; color:#FBBF24; font-weight:700;">수취단가(원/kg)</div>
+                    <div style="font-size:11px; color:#FBBF24; font-weight:700;">원물 단가(원/kg)</div>
                     <input type="text" id="ex-actual-price" value="${formatComma(actualPricePerKg)}" style="text-align:right; padding:6px; background:#1E293B; border:1px solid #FBBF24; color:#FBBF24; border-radius:6px; width:100%; font-size:13px; font-weight:800; margin-top:4px; font-family: Pretendard, monospace;" />
                   </div>
                   <div style="flex:1;">
-                    <div style="font-size:11px; color:#A7F3D0; font-weight:700;">생산량(kg)</div>
+                    <div style="font-size:11px; color:#A7F3D0; font-weight:700;">원물 생산량(kg)</div>
                     <input type="text" id="ex-actual-yield" value="${formatComma(actualYieldKg)}" style="text-align:right; padding:6px; background:#1E293B; border:1px solid #10B981; color:#A7F3D0; border-radius:6px; width:100%; font-size:13px; font-weight:800; margin-top:4px; font-family: Pretendard, monospace;" />
                   </div>
                 </div>
                 <div style="font-size:10.5px; color:#64748B; margin-top:6px; text-align:center;">
-                  단가 × 생산량 = <b>${formatMoney(actualPricePerKg * actualYieldKg)}</b>
+                  원물 매출 = <b>${formatMoney(actualPricePerKg * actualYieldKg)}</b>
                 </div>
               </div>
 
             </div>
+
+            <!-- 🌾 6차 산업 1차·2차·3차 산물 세부 매출액 정밀 입력 표 -->
+            <div style="background: #0F172A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px;">
+              <div style="font-size: 13.5px; font-weight: 800; color: #FBBF24; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span>🌾 6차 산업 (1차·2차·3차 산물) 세부 매출 구성 정밀 입력표</span>
+                <span style="font-size: 12px; color: #94A3B8; font-weight: 600;">각 매출액 입력 시 총수입과 농가소득이 자동 실시간 합산됩니다.</span>
+              </div>
+
+              <div class="data-table-container">
+                <table class="data-table" style="font-size: 13px;">
+                  <thead>
+                    <tr style="background: rgba(59, 130, 246, 0.2); color: #93C5FD;">
+                      <th>산업 구분</th>
+                      <th>주요 품목 / 융복합 사업 명칭</th>
+                      <th style="text-align: right; width: 220px;">농가 실제 연간 매출액 (원)</th>
+                      <th style="text-align: center; width: 100px;">매출 비중</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- 1차 산물: 원물 수확 생과 매출 -->
+                    <tr>
+                      <td style="font-weight: 800; color: #10B981;">🌾 1차 산물 (원물 생과)</td>
+                      <td style="color: #E2E8F0;">
+                        ${farmState.cropName} 원물 생과 출하 매출 
+                        <span style="font-size:11px; color:#94A3B8;">(${formatComma(actualPricePerKg)}원/kg × ${formatComma(actualYieldKg)}kg)</span>
+                      </td>
+                      <td>
+                        <input type="text" id="ex-rev-raw" value="${formatComma(revRaw)}" style="text-align:right; background:#1E293B; border:1px solid #10B981; color:#34D399; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:800; font-family: Pretendard, monospace;" />
+                      </td>
+                      <td style="text-align:center; font-weight:800; color:#10B981;">${rawShare}%</td>
+                    </tr>
+
+                    <!-- 1차 산물: 모종/자묘/부산물 매출 -->
+                    <tr>
+                      <td style="font-weight: 800; color: #A7F3D0;">🌱 1차 산물 (부산물·모종)</td>
+                      <td style="color: #E2E8F0;">
+                        육묘/모종 판매, 자묘 분양 및 부산물 판매 매출
+                      </td>
+                      <td>
+                        <input type="text" id="ex-rev-byproduct" value="${formatComma(revByproduct)}" placeholder="예: 5,000,000" style="text-align:right; background:#1E293B; border:1px solid rgba(255,255,255,0.2); color:#A7F3D0; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
+                      </td>
+                      <td style="text-align:center; font-weight:700; color:#A7F3D0;">${byproductShare}%</td>
+                    </tr>
+
+                    <!-- 2차 산물: 가공품 매출 -->
+                    <tr>
+                      <td style="font-weight: 800; color: #FBBF24;">🍓 2차 산물 (농산물 가공품)</td>
+                      <td style="color: #E2E8F0;">
+                        딸기잼, 딸기청, 건조과일, 즙/주스 등 가공품 판매 매출
+                      </td>
+                      <td>
+                        <input type="text" id="ex-rev-processed" value="${formatComma(revProcessed)}" placeholder="예: 15,000,000" style="text-align:right; background:#1E293B; border:1px solid rgba(255,255,255,0.2); color:#FBBF24; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
+                      </td>
+                      <td style="text-align:center; font-weight:700; color:#FBBF24;">${processedShare}%</td>
+                    </tr>
+
+                    <!-- 3차 산물: 체험/관광/서비스 매출 -->
+                    <tr>
+                      <td style="font-weight: 800; color: #C084FC;">🎨 3차 산물 (체험·관광·서비스)</td>
+                      <td style="color: #E2E8F0;">
+                        딸기 수확 체험, 팜카페, 교육농장, 주말농장 서비스 매출
+                      </td>
+                      <td>
+                        <input type="text" id="ex-rev-experience" value="${formatComma(revExperience)}" placeholder="예: 10,000,000" style="text-align:right; background:#1E293B; border:1px solid rgba(255,255,255,0.2); color:#C084FC; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
+                      </td>
+                      <td style="text-align:center; font-weight:700; color:#C084FC;">${experienceShare}%</td>
+                    </tr>
+                  </tbody>
+                  <tfoot style="background: rgba(59, 130, 246, 0.2); font-weight: 900;">
+                    <tr>
+                      <td colspan="2" style="text-align: right; padding: 10px;">6차 융복합 경영 총 매출액 합계:</td>
+                      <td style="text-align: right; color: #38BDF8; font-family: Pretendard, monospace; font-size: 15px;">${formatMoney(totalActualRevenue)}</td>
+                      <td style="text-align: center; color: #38BDF8;">100%</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -793,7 +896,11 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               cycles: 1,
               customRevenue: null,
               customPricePerKg: null,
-              customYieldKg: null
+              customYieldKg: null,
+              revRaw: null,
+              revByproduct: 0,
+              revProcessed: 0,
+              revExperience: 0
             };
             assetsState = [];
             loansState = [];
@@ -865,6 +972,10 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         farmState.customRevenue = null;
         farmState.customPricePerKg = null;
         farmState.customYieldKg = null;
+        farmState.revRaw = null;
+        farmState.revByproduct = 0;
+        farmState.revProcessed = 0;
+        farmState.revExperience = 0;
         triggerAutoSave();
         renderForm();
       });
@@ -873,7 +984,9 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const revenueInput = document.getElementById('ex-actual-revenue');
     if (revenueInput) {
       revenueInput.addEventListener('change', (e) => {
-        farmState.customRevenue = parseNum(e.target.value);
+        const val = parseNum(e.target.value);
+        farmState.customRevenue = val;
+        farmState.revRaw = val - (revByproduct + revProcessed + revExperience);
         triggerAutoSave();
         renderForm();
       });
@@ -883,9 +996,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     if (priceInput) {
       priceInput.addEventListener('change', (e) => {
         farmState.customPricePerKg = parseNum(e.target.value);
-        if (farmState.customYieldKg !== null) {
-          farmState.customRevenue = farmState.customPricePerKg * farmState.customYieldKg;
-        }
+        farmState.revRaw = farmState.customPricePerKg * actualYieldKg;
+        farmState.customRevenue = farmState.revRaw + revByproduct + revProcessed + revExperience;
         triggerAutoSave();
         renderForm();
       });
@@ -895,9 +1007,49 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     if (yieldInput) {
       yieldInput.addEventListener('change', (e) => {
         farmState.customYieldKg = parseNum(e.target.value);
-        if (farmState.customPricePerKg !== null) {
-          farmState.customRevenue = farmState.customPricePerKg * farmState.customYieldKg;
-        }
+        farmState.revRaw = actualPricePerKg * farmState.customYieldKg;
+        farmState.customRevenue = farmState.revRaw + revByproduct + revProcessed + revExperience;
+        triggerAutoSave();
+        renderForm();
+      });
+    }
+
+    // 6차 산업 1·2·3차 산물 세부 입력 핸들러
+    const revRawInp = document.getElementById('ex-rev-raw');
+    if (revRawInp) {
+      revRawInp.addEventListener('change', (e) => {
+        farmState.revRaw = parseNum(e.target.value);
+        farmState.customRevenue = farmState.revRaw + revByproduct + revProcessed + revExperience;
+        triggerAutoSave();
+        renderForm();
+      });
+    }
+
+    const revByproductInp = document.getElementById('ex-rev-byproduct');
+    if (revByproductInp) {
+      revByproductInp.addEventListener('change', (e) => {
+        farmState.revByproduct = parseNum(e.target.value);
+        farmState.customRevenue = revRaw + farmState.revByproduct + revProcessed + revExperience;
+        triggerAutoSave();
+        renderForm();
+      });
+    }
+
+    const revProcessedInp = document.getElementById('ex-rev-processed');
+    if (revProcessedInp) {
+      revProcessedInp.addEventListener('change', (e) => {
+        farmState.revProcessed = parseNum(e.target.value);
+        farmState.customRevenue = revRaw + revByproduct + farmState.revProcessed + revExperience;
+        triggerAutoSave();
+        renderForm();
+      });
+    }
+
+    const revExperienceInp = document.getElementById('ex-rev-experience');
+    if (revExperienceInp) {
+      revExperienceInp.addEventListener('change', (e) => {
+        farmState.revExperience = parseNum(e.target.value);
+        farmState.customRevenue = revRaw + revByproduct + revProcessed + farmState.revExperience;
         triggerAutoSave();
         renderForm();
       });
@@ -1046,7 +1198,13 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         areaPyung: farmState.areaPyung,
         areaM2: farmState.areaM2,
         cycles: farmState.cycles,
-        revenue: actualRevenue,
+        revenue: totalActualRevenue,
+        revenueBreakdown: {
+          raw: revRaw,
+          byproduct: revByproduct,
+          processed: revProcessed,
+          experience: revExperience
+        },
         operatingExpenses: calculatedExpenses,
         income: actualIncome,
         netProfit: Math.round(actualIncome * 0.8),
