@@ -1,7 +1,7 @@
 /**
  * @file FarmIntakeStep.js
  * @description 농가 경영체 정밀 데이터 입력 스키마
- * (원물 1차산물 + 모종/부산물 1차산물 + 가공품 2차산물 + 체험/서비스 3차산물 6차산업 정밀 매출 구성을 포함한 통합 경영분석 엔진)
+ * (건립/취득년도 vs 현재 시점 잔존가액 감가상각 정밀 계산 및 6차 산업 1·2·3차 산물 세부 매출 포함 통합 경영분석 엔진)
  */
 
 import { FULL_CROP_DATABASE } from '../data/cropDatabase.js';
@@ -18,6 +18,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
   if (!FULL_CROP_DATABASE[selectedCropKey]) selectedCropKey = '시설딸기(수경)';
 
   let baseCropModel = FULL_CROP_DATABASE[selectedCropKey];
+  const currentYear = new Date().getFullYear();
 
   let farmState = {
     farmName: currentModel.farmOwner || currentModel.farmName || '공주시',
@@ -30,7 +31,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     customRevenue: currentModel.revenue !== undefined ? currentModel.revenue : null,
     customPricePerKg: currentModel.pricePerKg !== undefined ? currentModel.pricePerKg : null,
     customYieldKg: currentModel.yieldKg !== undefined ? currentModel.yieldKg : null,
-    // 6차 산업 (1차 원물 + 1차 모종/부산물 + 2차 가공품 + 3차 체험/서비스) 매출액
     revRaw: (currentModel.revenueBreakdown && currentModel.revenueBreakdown.raw !== undefined) ? currentModel.revenueBreakdown.raw : null,
     revByproduct: (currentModel.revenueBreakdown && currentModel.revenueBreakdown.byproduct !== undefined) ? currentModel.revenueBreakdown.byproduct : 0,
     revProcessed: (currentModel.revenueBreakdown && currentModel.revenueBreakdown.processed !== undefined) ? currentModel.revenueBreakdown.processed : 0,
@@ -39,6 +39,16 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
   let assetsState = JSON.parse(JSON.stringify(currentAssets || []));
   let loansState = JSON.parse(JSON.stringify(currentLoans || []));
+
+  // Default sample assets if empty
+  if (!assetsState || assetsState.length === 0) {
+    assetsState = [
+      { 연번: 1, 목록: "주재배 온실 (유리/양액시설)", 구입가: 300000000, 건립년도: 2021, 내용년수: 15 },
+      { 연번: 2, 목록: "난방 시설 및 광열 제어기", 구입가: 50000000, 건립년도: 2022, 내용년수: 10 },
+      { 연번: 3, 목록: "농용 운반차 및 수확기", 구입가: 25000000, 건립년도: 2020, 내용년수: 8 },
+      { 연번: 4, 목록: "저자극 양액 공급 장치", 구입가: 55490348, 건립년도: 2023, 내용년수: 10 }
+    ];
+  }
 
   // Default sample loans if empty
   if (!loansState || loansState.length === 0) {
@@ -70,6 +80,43 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const formattedNum = (Math.round(million * 10) / 10).toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     return `${formattedNum}만 원`;
   };
+
+  // Helper for asset metrics based on build year vs current analysis year
+  function calcAssetDepreciationMetrics(assets, targetYear = currentYear) {
+    let totalCost = 0;
+    let totalBookValue = 0;
+    let totalAnnualDep = 0;
+
+    const rows = (assets || []).map((a, idx) => {
+      const price = parseNum(a.구입가) || 0;
+      const buildYear = parseNum(a.건립년도 || a.buildYear) || (targetYear - 2);
+      const years = parseNum(a.내용년수) || 10;
+
+      const elapsed = Math.max(0, targetYear - buildYear);
+      const remainingYears = Math.max(0, years - elapsed);
+      const annual = (remainingYears > 0 && years > 0) ? Math.round(price / years) : 0;
+      const bookValue = Math.max(0, price - (annual * elapsed));
+
+      totalCost += price;
+      totalBookValue += bookValue;
+      totalAnnualDep += annual;
+
+      return {
+        idx: idx + 1,
+        name: a.목록 || a.name || '자산/시설',
+        buildYear,
+        years,
+        elapsed,
+        remainingYears,
+        price,
+        bookValue,
+        annual,
+        isCompleted: remainingYears <= 0
+      };
+    });
+
+    return { rows, totalCost, totalBookValue, totalAnnualDep };
+  }
 
   // Auto save trigger function
   function triggerAutoSave() {
@@ -177,11 +224,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     farmState.revProcessed = 0;
     farmState.revExperience = 0;
 
-    const totalAssetsDepreciation = assetsState.reduce((sum, a) => {
-      const price = parseNum(a.구입가) || 0;
-      const years = parseNum(a.내용년수) || 10;
-      return sum + (years > 0 ? Math.round(price / years) : 0);
-    }, 0);
+    const assetMetrics = calcAssetDepreciationMetrics(assetsState, currentYear);
 
     const year1InterestTotal = loansState.reduce((sum, loan) => {
       const amount = parseNum(loan.대출금액 !== undefined ? loan.대출금액 : (loan.amount !== undefined ? loan.amount : loan.원금)) || 0;
@@ -216,7 +259,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         { name: '대출이자 (순수 금융비용)', key: '대출이자', cost: year1InterestTotal, isAutoSynced: true }
       ],
       fixed: [
-        { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: totalAssetsDepreciation > 0 ? totalAssetsDepreciation : findScaledCost(['상각비'], 0.12), isAutoSynced: totalAssetsDepreciation > 0 },
+        { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: assetMetrics.totalAnnualDep > 0 ? assetMetrics.totalAnnualDep : findScaledCost(['상각비'], 0.12), isAutoSynced: assetMetrics.totalAnnualDep > 0 },
         { name: '자동차/운반비', key: '자동차비', cost: findScaledCost(['자동차', '운반', '차량'], 0.10) },
         { name: '수리 및 유지관리비', key: '수리비', cost: findScaledCost(['수리'], 0.05) },
         { name: '임차료/기타 고정비', key: '기타고정비', cost: findScaledCost(['기타고정비', '임차료'], 0.07) }
@@ -234,12 +277,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const cycleScaleFactor = (farmState.cycles || 1) / (baseCropModel.cycles || 1);
     const totalScaleFactor = areaScaleFactor * cycleScaleFactor;
 
-    const totalAssetsCost = assetsState.reduce((sum, a) => sum + (parseNum(a.구입가) || 0), 0);
-    const totalAssetsDepreciation = assetsState.reduce((sum, a) => {
-      const price = parseNum(a.구입가) || 0;
-      const years = parseNum(a.내용년수) || 10;
-      return sum + (years > 0 ? Math.round(price / years) : 0);
-    }, 0);
+    const assetMetrics = calcAssetDepreciationMetrics(assetsState, currentYear);
 
     const year1InterestTotal = loansState.reduce((sum, loan) => {
       const amount = parseNum(loan.대출금액 !== undefined ? loan.대출금액 : (loan.amount !== undefined ? loan.amount : loan.원금)) || 0;
@@ -257,8 +295,8 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       applyRdaBenchmarkToInputs();
     } else {
       const depItem = costItemsState.fixed.find(i => i.name === '시설/대농구 상각비');
-      if (depItem && totalAssetsDepreciation > 0) {
-        depItem.cost = totalAssetsDepreciation;
+      if (depItem && assetMetrics.totalAnnualDep > 0) {
+        depItem.cost = assetMetrics.totalAnnualDep;
         depItem.isAutoSynced = true;
       }
 
@@ -286,13 +324,11 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const actualPricePerKg = farmState.customPricePerKg !== null ? farmState.customPricePerKg : (baseCropModel.pricePerKg || 2500);
     const actualYieldKg = farmState.customYieldKg !== null ? farmState.customYieldKg : Math.round((baseCropModel.yieldKg || 10000) * totalScaleFactor);
 
-    // 1차 원물 매출 기본값: 수취단가 * 생산량 (또는 사용자가 세부입력한 값)
     const revRaw = farmState.revRaw !== null ? farmState.revRaw : Math.round(actualPricePerKg * actualYieldKg);
     const revByproduct = parseNum(farmState.revByproduct);
     const revProcessed = parseNum(farmState.revProcessed);
     const revExperience = parseNum(farmState.revExperience);
 
-    // 6차 산업 1·2·3차 산물 합산 총수입
     const totalActualRevenue = revRaw + revByproduct + revProcessed + revExperience;
     const actualIncome = totalActualRevenue - calculatedExpenses;
 
@@ -432,15 +468,12 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
 
             <!-- 상단 요약 KPI 4개 카드 -->
             <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px;">
-              
-              <!-- 1. 대상 농가 6차 융복합 경영 총수입 (매출액) -->
               <div style="background:#0F172A; padding:14px 16px; border-radius:10px; border:1px solid #3B82F6;">
                 <div style="font-size:12px; color:#93C5FD; font-weight:700;">🎯 6차 융복합 경영 총수입 (매출합계)</div>
                 <input type="text" id="ex-actual-revenue" value="${formatComma(totalActualRevenue)}" style="text-align:right; padding:8px 10px; background:#1E293B; border:1px solid #3B82F6; color:#38BDF8; border-radius:6px; width:100%; font-size:17px; font-weight:900; margin-top:6px; font-family: Pretendard, monospace;" />
                 <div style="font-size:10.5px; color:#64748B; margin-top:4px;">농진청 원물 표준액: ${formatShortMoney(calculatedRevenue)}</div>
               </div>
 
-              <!-- 2. 대상 농가 총 경영비 (원가합계 - 자동연동) -->
               <div style="background:#0F172A; padding:14px 16px; border-radius:10px; border:1px solid rgba(248,113,113,0.3);">
                 <div style="font-size:12px; color:#F87171; font-weight:700;">🏢 대상 농가 총 경영비 (원가합계)</div>
                 <div style="font-size:17px; font-weight:900; color:#F87171; margin-top:10px; text-align:right; font-family: Pretendard, monospace;">
@@ -449,7 +482,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 <div style="font-size:10.5px; color:#64748B; margin-top:4px;">경영비 세부항목 자동 합산</div>
               </div>
 
-              <!-- 3. 대상 농가 실제 농가소득 (자동 산출) -->
               <div style="background:#0F172A; padding:14px 16px; border-radius:10px; border:1px solid #10B981;">
                 <div style="font-size:12px; color:#34D399; font-weight:700;">💰 대상 농가 실제 농가소득 (수입-경영비)</div>
                 <div style="font-size:18px; font-weight:900; color:#10B981; margin-top:10px; text-align:right; font-family: Pretendard, monospace;">
@@ -458,7 +490,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                 <div style="font-size:10.5px; color:#64748B; margin-top:4px;">소득률: ${totalActualRevenue > 0 ? ((actualIncome / totalActualRevenue) * 100).toFixed(1) : 0}%</div>
               </div>
 
-              <!-- 4. 실제 원물 수취 단가 & 생산량 직접 입력 -->
               <div style="background:#0F172A; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.15);">
                 <div style="display:flex; justify-content:space-between; gap:8px;">
                   <div style="flex:1;">
@@ -474,10 +505,9 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                   원물 매출 = <b>${formatMoney(actualPricePerKg * actualYieldKg)}</b>
                 </div>
               </div>
-
             </div>
 
-            <!-- 🌾 6차 산업 1차·2차·3차 산물 세부 매출액 정밀 입력 표 -->
+            <!-- 🌾 6차 산업 세부 매출 표 -->
             <div style="background: #0F172A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px;">
               <div style="font-size: 13.5px; font-weight: 800; color: #FBBF24; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
                 <span>🌾 6차 산업 (1차·2차·3차 산물) 세부 매출 구성 정밀 입력표</span>
@@ -495,7 +525,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                     </tr>
                   </thead>
                   <tbody>
-                    <!-- 1차 산물: 원물 수확 생과 매출 -->
                     <tr>
                       <td style="font-weight: 800; color: #10B981;">🌾 1차 산물 (원물 생과)</td>
                       <td style="color: #E2E8F0;">
@@ -507,8 +536,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                       </td>
                       <td style="text-align:center; font-weight:800; color:#10B981;">${rawShare}%</td>
                     </tr>
-
-                    <!-- 1차 산물: 모종/자묘/부산물 매출 -->
                     <tr>
                       <td style="font-weight: 800; color: #A7F3D0;">🌱 1차 산물 (부산물·모종)</td>
                       <td style="color: #E2E8F0;">
@@ -519,8 +546,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                       </td>
                       <td style="text-align:center; font-weight:700; color:#A7F3D0;">${byproductShare}%</td>
                     </tr>
-
-                    <!-- 2차 산물: 가공품 매출 -->
                     <tr>
                       <td style="font-weight: 800; color: #FBBF24;">🍓 2차 산물 (농산물 가공품)</td>
                       <td style="color: #E2E8F0;">
@@ -531,8 +556,6 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
                       </td>
                       <td style="text-align:center; font-weight:700; color:#FBBF24;">${processedShare}%</td>
                     </tr>
-
-                    <!-- 3차 산물: 체험/관광/서비스 매출 -->
                     <tr>
                       <td style="font-weight: 800; color: #C084FC;">🎨 3차 산물 (체험·관광·서비스)</td>
                       <td style="color: #E2E8F0;">
@@ -687,15 +710,15 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           </div>
         </div>
 
-        <!-- 3. 농장 보유 자산 목록 -->
+        <!-- 3. 농장 보유 자산 목록 (건립년도 vs 현재 시점 잔존가액 정밀 계산) -->
         <div style="background: #1E293B; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin-bottom: 24px; color: #FFF; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
             <div>
               <h2 style="font-size: 17px; font-weight: 800; color: #3B82F6; display: flex; align-items: center; gap: 8px;">
-                🏗️ 3. 농장 보유 자산 현황 & 연간 감가상각비 계산
+                🏗️ 3. 농장 보유 자산 현황 & 건립년도 기준 감가상각비 계산 (현재 시점: ${currentYear}년)
               </h2>
               <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">
-                자산 구입가와 내용년수를 입력하시면 <b>연간 감가상각비 총액이 하단에 산출</b>되어 위 <b>[고정비 ➔ 시설/대농구 상각비]</b>에 자동 연동됩니다.
+                자산의 <b>[건립/취득 연도]</b>와 내용년수를 비교하여 <b>현재 잔존 장부가액 및 현재 연 감가상각비</b>가 산출되어 위 <b>[고정비 ➔ 상각비]</b>에 자동 연동됩니다.
               </p>
             </div>
             <button id="intake-add-asset-btn" style="background: rgba(59,130,246,0.2); border: 1px solid #3B82F6; color: #60A5FA; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">
@@ -704,36 +727,47 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           </div>
 
           <div class="data-table-container">
-            <table class="data-table">
+            <table class="data-table" style="font-size:13px;">
               <thead>
                 <tr>
-                  <th style="width: 50px;">연번</th>
+                  <th style="width: 45px; text-align:center;">연번</th>
                   <th>자산/시설 목록명</th>
-                  <th style="text-align: right;">구입가(원)</th>
-                  <th style="text-align: center;">내용년수(년)</th>
-                  <th style="text-align: right; color:#FBBF24;">연 감가상각비</th>
-                  <th style="width: 60px; text-align: center;">삭제</th>
+                  <th style="text-align: right;">구입가/건립비(원)</th>
+                  <th style="text-align: center; width: 110px;">건립/취득년도</th>
+                  <th style="text-align: center; width: 90px;">내용년수</th>
+                  <th style="text-align: right; color:#60A5FA;">현재 잔존가액</th>
+                  <th style="text-align: right; color:#FBBF24;">현재 연 상각비</th>
+                  <th style="text-align: center; width: 130px;">상각 상태</th>
+                  <th style="width: 55px; text-align: center;">삭제</th>
                 </tr>
               </thead>
               <tbody>
-                ${assetsState.map((asset, idx) => {
-                  const p = parseNum(asset.구입가) || 0;
-                  const y = parseNum(asset.내용년수) || 10;
-                  const dep = y > 0 ? Math.round(p / y) : 0;
+                ${assetMetrics.rows.map((asset, idx) => {
                   return `
                     <tr>
-                      <td style="text-align: center;">${idx + 1}</td>
+                      <td style="text-align: center; color:#94A3B8;">${asset.idx}</td>
                       <td>
-                        <input type="text" class="i-asset-name" data-idx="${idx}" value="${asset.목록 || asset.name || ''}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 10px; border-radius:6px; width:100%; font-size:13px;" />
+                        <input type="text" class="i-asset-name" data-idx="${idx}" value="${asset.name}" style="background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 10px; border-radius:6px; width:100%; font-size:13px;" />
                       </td>
                       <td>
-                        <input type="text" class="i-asset-price" data-idx="${idx}" value="${formatComma(p)}" style="text-align:right; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
+                        <input type="text" class="i-asset-price" data-idx="${idx}" value="${formatComma(asset.price)}" style="text-align:right; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 10px; border-radius:6px; width:100%; font-size:13px; font-weight:700; font-family: Pretendard, monospace;" />
                       </td>
                       <td>
-                        <input type="text" class="i-asset-years" data-idx="${idx}" value="${y}" style="text-align:center; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 10px; border-radius:6px; width:80px; margin:0 auto; font-size:13px; font-weight:700;" />
+                        <input type="text" class="i-asset-buildyear" data-idx="${idx}" value="${asset.buildYear}" style="text-align:center; background:#0F172A; border:1px solid #3B82F6; color:#93C5FD; padding:6px 6px; border-radius:6px; width:80px; margin:0 auto; font-size:13px; font-weight:700;" />
+                      </td>
+                      <td>
+                        <input type="text" class="i-asset-years" data-idx="${idx}" value="${asset.years}" style="text-align:center; background:#0F172A; border:1px solid rgba(255,255,255,0.15); color:#FFF; padding:6px 6px; border-radius:6px; width:70px; margin:0 auto; font-size:13px; font-weight:700;" />
+                      </td>
+                      <td style="text-align:right; color:#60A5FA; font-weight:700; font-family: Pretendard, monospace;">
+                        ${formatMoney(asset.bookValue)}
                       </td>
                       <td style="text-align:right; color:#FBBF24; font-weight:800; font-family: Pretendard, monospace;">
-                        ${formatMoney(dep)}
+                        ${formatMoney(asset.annual)}
+                      </td>
+                      <td style="text-align:center;">
+                        ${asset.isCompleted 
+                          ? `<span style="font-size:11px; background:rgba(248,113,113,0.2); color:#F87171; border:1px solid rgba(248,113,113,0.3); padding:3px 8px; border-radius:6px; font-weight:700;">상각 완료 (0원)</span>`
+                          : `<span style="font-size:11px; background:rgba(16,185,129,0.2); color:#10B981; border:1px solid rgba(16,185,129,0.3); padding:3px 8px; border-radius:6px; font-weight:700;">상각 중 (잔여 ${asset.remainingYears}년)</span>`}
                       </td>
                       <td style="text-align: center;">
                         <button class="i-btn-del-asset" data-idx="${idx}" style="background:rgba(239,68,68,0.2); color:#F87171; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px;">삭제</button>
@@ -744,11 +778,12 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
               </tbody>
               <tfoot style="background: rgba(59, 130, 246, 0.1); font-weight: 800;">
                 <tr>
-                  <td colspan="2" style="text-align: right; padding: 12px;">자산 총합계 & 연간 총 감가상각비:</td>
-                  <td style="text-align: right; color:#38BDF8; font-family: Pretendard, monospace;">${formatMoney(totalAssetsCost)}</td>
-                  <td></td>
-                  <td style="text-align: right; color:#FBBF24; font-family: Pretendard, monospace;">${formatMoney(totalAssetsDepreciation)}</td>
-                  <td></td>
+                  <td colspan="2" style="text-align: right; padding: 12px;">전체 자산 총합계, 잔존장부가액 & 현재 연 감가상각비:</td>
+                  <td style="text-align: right; color:#38BDF8; font-family: Pretendard, monospace;">${formatMoney(assetMetrics.totalCost)}</td>
+                  <td colspan="2"></td>
+                  <td style="text-align: right; color:#60A5FA; font-family: Pretendard, monospace;">${formatMoney(assetMetrics.totalBookValue)}</td>
+                  <td style="text-align: right; color:#FBBF24; font-family: Pretendard, monospace;">${formatMoney(assetMetrics.totalAnnualDep)}</td>
+                  <td colspan="2"></td>
                 </tr>
               </tfoot>
             </table>
@@ -1076,9 +1111,9 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       });
     });
 
-    // Asset handlers
+    // Asset handlers (건립년도 및 구입가/내용년수 연동)
     document.getElementById('intake-add-asset-btn').addEventListener('click', () => {
-      assetsState.push({ 연번: assetsState.length + 1, 목록: "신규 시설/장비", 구입가: 10000000, 내용년수: 10 });
+      assetsState.push({ 연번: assetsState.length + 1, 목록: "신규 시설/장비", 구입가: 10000000, 건립년도: currentYear, 내용년수: 10 });
       triggerAutoSave();
       renderForm();
     });
@@ -1098,6 +1133,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         triggerAutoSave();
       });
     });
+
     document.querySelectorAll('.i-asset-price').forEach(inp => {
       inp.addEventListener('change', (e) => {
         assetsState[Number(e.target.getAttribute('data-idx'))].구입가 = parseNum(e.target.value);
@@ -1105,9 +1141,21 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         renderForm();
       });
     });
+
+    document.querySelectorAll('.i-asset-buildyear').forEach(inp => {
+      inp.addEventListener('change', (e) => {
+        const idx = Number(e.target.getAttribute('data-idx'));
+        assetsState[idx].건립년도 = parseNum(e.target.value) || currentYear;
+        assetsState[idx].buildYear = parseNum(e.target.value) || currentYear;
+        triggerAutoSave();
+        renderForm();
+      });
+    });
+
     document.querySelectorAll('.i-asset-years').forEach(inp => {
       inp.addEventListener('change', (e) => {
-        assetsState[Number(e.target.getAttribute('data-idx'))].내용년수 = parseNum(e.target.value);
+        const idx = Number(e.target.getAttribute('data-idx'));
+        assetsState[idx].내용년수 = parseNum(e.target.value);
         triggerAutoSave();
         renderForm();
       });
@@ -1212,8 +1260,9 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         pricePerKg: actualPricePerKg,
         costBreakdown: combinedCostBreakdown,
         costItemsState: costItemsState,
-        totalAssetsCost: totalAssetsCost,
-        totalAssetsDepreciation: totalAssetsDepreciation,
+        totalAssetsCost: assetMetrics.totalCost,
+        totalAssetsBookValue: assetMetrics.totalBookValue,
+        totalAssetsDepreciation: assetMetrics.totalAnnualDep,
         year1InterestTotal: year1InterestTotal,
         schedule5Years: schedule5Years,
         benchmark: baseCropModel.benchmark,
