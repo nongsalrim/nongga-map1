@@ -1,12 +1,42 @@
 /**
  * @file Header.js
- * @description 상단 네비게이션 및 로고, 브랜딩, 관리자 모드 버튼 모듈
- * (2605_농가살림연구소 회사소개자료 정식 데이터)
+ * @description 상단 네비게이션 모듈 (외부 공유 접속 시 홈페이지 관련 메뉴 전면 제외 및 1:1 진단서 헤더 단독 제공)
  */
 
 import { companyData } from '../data/company.js';
 
 export function renderHeader(activePage = 'home', onNavigate, isAdmin = false, onToggleAdmin) {
+  const isSharedLink = typeof window !== 'undefined' && Boolean(new URLSearchParams(window.location.search).get('data'));
+
+  // 외부 전달 전용 1:1 진단서 접속 모드인 경우: 홈페이지 메뉴 전면 제외
+  if (isSharedLink) {
+    return `
+      <header class="site-header" style="background: linear-gradient(135deg, #0F172A, #1E293B); border-bottom: 2px solid rgba(16, 185, 129, 0.4); padding: 14px 0;">
+        <div class="container">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="font-size: 26px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; border-radius: 14px; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">🌾</div>
+              <div>
+                <span style="font-size: 11px; font-weight: 800; color: #34D399; letter-spacing: 0.5px; background: rgba(16, 185, 129, 0.15); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(16,185,129,0.3);">
+                  1:1 FARM DEDICATED DIAGNOSIS REPORT
+                </span>
+                <h1 style="font-size: 18px; font-weight: 900; color: #FFF; margin-top: 2px; letter-spacing: -0.5px;">
+                  농가살림연구소(주) 1:1 맞춤 경영진단서
+                </h1>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                🔒 1:1 전용 보안 열람 모드
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
+    `;
+  }
+
+  // 일반 컨설턴트/내부 모드인 경우 전체 메뉴 표시
   const navItems = [
     { key: 'home', label: 'HOME' },
     { key: 'analysis', label: '⚡ 온라인 경영진단' },
@@ -48,7 +78,6 @@ export function renderHeader(activePage = 'home', onNavigate, isAdmin = false, o
             <div class="logo-icon" style="display:none;">🌿</div>
           </a>
 
-
           <ul class="nav-menu">
             ${navItems.map(item => `
               <li>
@@ -60,15 +89,9 @@ export function renderHeader(activePage = 'home', onNavigate, isAdmin = false, o
           </ul>
 
           <div style="display: flex; align-items: center; gap: 10px;">
-            ${(typeof window !== 'undefined' && Boolean(new URLSearchParams(window.location.search).get('data'))) ? `
-              <span style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 800;">
-                🔒 1:1 전용 보안 진단 모드
-              </span>
-            ` : `
-              <button id="admin-mode-toggle" class="admin-toggle-btn">
-                ${isAdmin ? '🔒 사용자 모드' : '⚙️ 무코드 관리자'}
-              </button>
-            `}
+            <button id="admin-mode-toggle" class="admin-toggle-btn">
+              ${isAdmin ? '🔒 사용자 모드' : '⚙️ 무코드 관리자'}
+            </button>
           </div>
         </div>
       </div>
