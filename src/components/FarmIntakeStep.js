@@ -969,7 +969,7 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     const btnShareLink = document.getElementById('btn-create-farm-share-link');
     if (btnShareLink) {
       btnShareLink.addEventListener('click', () => {
-        const curModel = calculateEngineModel();
+        const curModel = buildCurrentModel();
         openFarmShareLinkModal(curModel, 'survey');
       });
     }
@@ -1371,14 +1371,13 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       });
     });
 
-    // Submit handler
-    document.getElementById('intake-submit-btn').addEventListener('click', () => {
+    function buildCurrentModel() {
       const combinedCostBreakdown = [
-        ...costItemsState.variable.map(i => ({ name: i.name, cost: parseNum(i.cost), percent: calculatedExpenses > 0 ? Number(((parseNum(i.cost) / calculatedExpenses) * 100).toFixed(1)) : 0 })),
-        ...costItemsState.fixed.map(i => ({ name: i.name, cost: parseNum(i.cost), percent: calculatedExpenses > 0 ? Number(((parseNum(i.cost) / calculatedExpenses) * 100).toFixed(1)) : 0 }))
+        ...(costItemsState && costItemsState.variable ? costItemsState.variable : []).map(i => ({ name: i.name, cost: parseNum(i.cost), percent: calculatedExpenses > 0 ? Number(((parseNum(i.cost) / calculatedExpenses) * 100).toFixed(1)) : 0 })),
+        ...(costItemsState && costItemsState.fixed ? costItemsState.fixed : []).map(i => ({ name: i.name, cost: parseNum(i.cost), percent: calculatedExpenses > 0 ? Number(((parseNum(i.cost) / calculatedExpenses) * 100).toFixed(1)) : 0 }))
       ];
 
-      const finalModel = {
+      return {
         category: farmState.category,
         cropName: farmState.cropName,
         farmOwner: farmState.farmName,
@@ -1405,10 +1404,14 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         totalAssetsDepreciation: assetMetrics.totalAnnualDep,
         year1InterestTotal: year1InterestTotal,
         schedule5Years: schedule5Years,
-        benchmark: baseCropModel.benchmark,
-        kamisData: baseCropModel.kamisData
+        benchmark: baseCropModel ? baseCropModel.benchmark : null,
+        kamisData: baseCropModel ? baseCropModel.kamisData : null
       };
+    }
 
+    // Submit handler
+    document.getElementById('intake-submit-btn').addEventListener('click', () => {
+      const finalModel = buildCurrentModel();
       saveFarmDraft(farmState, costItemsState, assetsState, loansState);
       if (onSubmit) onSubmit(finalModel, assetsState, loansState, true);
     });
