@@ -1,7 +1,4 @@
-/**
- * @file FarmShareLinkModal.js
- * @description 🔗 특정 농가 전용 1:1 경영진단 카카오톡 공유 링크 생성 & 복사 모달
- */
+import { encodeFarmData } from '../utils/urlCodec.js';
 
 export function openFarmShareLinkModal(model, activeTab = 'survey') {
   const parseNum = (val) => {
@@ -35,7 +32,7 @@ export function openFarmShareLinkModal(model, activeTab = 'survey') {
     costBreakdown: model.costBreakdown || null
   };
 
-  const base64Data = btoa(encodeURIComponent(JSON.stringify(payloadObj)));
+  const base64Data = encodeFarmData(payloadObj);
 
   // Default Base Domain (Vercel Live URL)
   let defaultDomain = 'https://temporary-fleet-aurora-o269zz8.vercel.app';
