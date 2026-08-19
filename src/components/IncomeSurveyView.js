@@ -20,31 +20,31 @@ export function renderIncomeSurvey(container, model) {
               </tr>
             </thead>
             <tbody>
-              <tr style="background: rgba(16, 185, 129, 0.1);">
-                <td class="highlight">총수입</td>
-                <td class="highlight">주산물 가액 + 기타수익</td>
-                <td class="num highlight">${formatMoney(model.revenue)}</td>
-                <td class="num highlight">100.0%</td>
+              <tr style="background: rgba(56, 189, 248, 0.15); border-bottom: 1px solid rgba(56, 189, 248, 0.3);">
+                <td style="color: #38BDF8; font-weight:900;">총수입</td>
+                <td style="color: #7DD3FC; font-weight:700;">주산물 가액 + 6차 산업 기타수익</td>
+                <td class="num" style="color: #38BDF8; font-weight:900; font-family: Pretendard, monospace;">${formatMoney(model.revenue)}</td>
+                <td class="num" style="color: #38BDF8; font-weight:900;">100.0%</td>
               </tr>
               ${model.costBreakdown.map(item => `
-                <tr>
-                  <td>경영비</td>
-                  <td>${item.name}</td>
-                  <td class="num">${formatMoney(item.cost)}</td>
-                  <td class="num">${item.percent}%</td>
+                <tr style="color: #E2E8F0;">
+                  <td style="color: #94A3B8;">경영비</td>
+                  <td style="color: #F1F5F9; font-weight: 600;">${item.name}</td>
+                  <td class="num" style="color: #F1F5F9; font-family: Pretendard, monospace;">${formatMoney(item.cost)}</td>
+                  <td class="num" style="color: #94A3B8;">${item.percent}%</td>
                 </tr>
               `).join('')}
-              <tr style="background: rgba(239, 68, 68, 0.1);">
-                <td style="color: var(--accent-rose); font-weight:700;">경영비 합계</td>
-                <td style="color: var(--accent-rose); font-weight:700;">중간재비 + 시설상각비 + 기타비용</td>
-                <td class="num" style="color: var(--accent-rose); font-weight:700;">${formatMoney(model.operatingExpenses)}</td>
-                <td class="num" style="color: var(--accent-rose); font-weight:700;">${((model.operatingExpenses / model.revenue) * 100).toFixed(1)}%</td>
+              <tr style="background: rgba(248, 113, 113, 0.15); border-top: 1px solid rgba(248, 113, 113, 0.4); border-bottom: 1px solid rgba(248, 113, 113, 0.4);">
+                <td style="color: #F87171; font-weight:900;">경영비 합계</td>
+                <td style="color: #FCA5A5; font-weight:700;">중간재비 + 시설상각비 + 기타비용</td>
+                <td class="num" style="color: #F87171; font-weight:900; font-family: Pretendard, monospace;">${formatMoney(model.operatingExpenses)}</td>
+                <td class="num" style="color: #F87171; font-weight:900;">${((model.operatingExpenses / model.revenue) * 100).toFixed(1)}%</td>
               </tr>
-              <tr style="background: rgba(245, 158, 11, 0.15); font-size: 15px;">
-                <td style="color: var(--accent-gold); font-weight:800;">농가소득</td>
-                <td style="color: var(--accent-gold); font-weight:800;">총수입 - 경영비</td>
-                <td class="num" style="color: var(--accent-gold); font-weight:800;">${formatMoney(model.income)}</td>
-                <td class="num" style="color: var(--accent-gold); font-weight:800;">${((model.income / model.revenue) * 100).toFixed(1)}%</td>
+              <tr style="background: rgba(16, 185, 129, 0.2); font-size: 15px; border-top: 1px solid rgba(16, 185, 129, 0.5);">
+                <td style="color: #34D399; font-weight:900;">농가소득</td>
+                <td style="color: #A7F3D0; font-weight:800;">총수입 - 경영비</td>
+                <td class="num" style="color: #34D399; font-weight:900; font-family: Pretendard, monospace;">${formatMoney(model.income)}</td>
+                <td class="num" style="color: #34D399; font-weight:900;">${((model.income / model.revenue) * 100).toFixed(1)}%</td>
               </tr>
             </tbody>
           </table>
