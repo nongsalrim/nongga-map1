@@ -12,6 +12,7 @@ import {
   getAutoSaveDraft, 
   openFarmDraftModal 
 } from './FarmDraftModal.js';
+import { openFarmShareLinkModal } from './FarmShareLinkModal.js';
 
 export function renderFarmIntakeStep(container, currentModel, currentAssets, currentLoans, onSubmit, onCropChange, onDraftLoad) {
   let selectedCropKey = currentModel.cropName ? currentModel.cropName.replace('업로드: ', '') : '시설딸기(수경)';
@@ -410,10 +411,13 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           </div>
 
           <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <button id="btn-save-farm-draft" style="background: linear-gradient(135deg, #10B981, #059669); color: #FFFFFF; border: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 14px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+            <button id="btn-create-farm-share-link" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: #FFFFFF; border: 1px solid #A855F7; padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(139,92,246,0.4); transition: all 0.2s ease;">
+              🔗 해당 농가 전용 1:1 진단 링크 생성
+            </button>
+            <button id="btn-save-farm-draft" style="background: linear-gradient(135deg, #10B981, #059669); color: #FFFFFF; border: none; padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 14px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
               💾 현재 농가 데이터 중간 저장
             </button>
-            <button id="btn-open-draft-modal" style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: #FFFFFF; border: 1px solid #3B82F6; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,99,235,0.4); transition: all 0.2s ease;">
+            <button id="btn-open-draft-modal" style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: #FFFFFF; border: 1px solid #3B82F6; padding: 10px 18px; border-radius: 10px; font-size: 14px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,99,235,0.4); transition: all 0.2s ease;">
               📂 저장된 농가 목록 불러오기 (${savedDrafts.length}개)
             </button>
           </div>
@@ -959,6 +963,14 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
           toastMsg = `💾 [${saved.name}] 데이터가 중간 저장 목록에 성공적으로 저장되었습니다!`;
           renderForm();
         }
+      });
+    }
+
+    const btnShareLink = document.getElementById('btn-create-farm-share-link');
+    if (btnShareLink) {
+      btnShareLink.addEventListener('click', () => {
+        const curModel = calculateEngineModel();
+        openFarmShareLinkModal(curModel, 'survey');
       });
     }
 
