@@ -208,8 +208,24 @@ export async function exportDepreciationExcel(schedule, farmName = '농가') {
 
 export { openDepreciationModal as renderDepreciationDetailModal };
 export function openDepreciationModal(farmModel, assetsList) {
-  const farmName = farmModel.farmOwner || farmModel.farmName || '농가';
-  const schedule = calc5YearDepreciationSchedule(assetsList);
+  let model = farmModel;
+  let assets = assetsList;
+
+  if (Array.isArray(farmModel)) {
+    assets = farmModel;
+    model = { farmOwner: '농가' };
+  } else if (!model) {
+    model = { farmOwner: '농가' };
+  }
+  if (!assets) assets = [];
+
+  const existingModal = document.getElementById('depreciation-modal-overlay');
+  if (existingModal) {
+    try { document.body.removeChild(existingModal); } catch(e) {}
+  }
+
+  const farmName = model.farmOwner || model.farmName || '농가';
+  const schedule = calc5YearDepreciationSchedule(assets);
   const startY = schedule.startYear;
   const rows = schedule.rows || [];
   const yearTotals = schedule.yearTotals || [0,0,0,0,0];
