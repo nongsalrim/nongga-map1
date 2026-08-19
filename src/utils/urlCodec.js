@@ -1,6 +1,6 @@
 /**
  * @file urlCodec.js
- * @description URL-safe Base64 encoding/decoding utility for 1:1 farm shareable link parameters
+ * @description URL-safe Base64 encoding/decoding utility for 1:1 farm shareable link parameters (KakaoTalk Safe)
  */
 
 export function encodeFarmData(obj) {
@@ -19,9 +19,10 @@ export function encodeFarmData(obj) {
 
 export function decodeFarmData(str) {
   if (!str || typeof str !== 'string') return null;
+  // Clean trailing URL hashes or extra query parameters
+  const cleanStr = str.trim().split('#')[0].split('&')[0];
   try {
-    // Restore standard Base64 padding and characters
-    let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    let base64 = cleanStr.replace(/-/g, '+').replace(/_/g, '/');
     const pad = base64.length % 4;
     if (pad) {
       base64 += '='.repeat(4 - pad);
@@ -30,9 +31,8 @@ export function decodeFarmData(str) {
     const jsonStr = decodeURIComponent(decodedStr);
     return JSON.parse(jsonStr);
   } catch (e) {
-    // Try direct decodeURIComponent fallback if not base64
     try {
-      const jsonStr = decodeURIComponent(str);
+      const jsonStr = decodeURIComponent(cleanStr);
       return JSON.parse(jsonStr);
     } catch (e2) {
       console.warn('decodeFarmData parsing failed:', e2);

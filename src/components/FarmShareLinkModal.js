@@ -45,9 +45,7 @@ export function openFarmShareLinkModal(model, activeTab = 'survey') {
       operatingExpenses: parseNum(model.operatingExpenses),
       income: parseNum(model.income),
       yieldKg: parseNum(model.yieldKg),
-      pricePerKg: parseNum(model.pricePerKg),
-      revenueBreakdown: model.revenueBreakdown || null,
-      costBreakdown: model.costBreakdown || null
+      pricePerKg: parseNum(model.pricePerKg)
     };
 
     const base64Data = encodeFarmData(payloadObj);
