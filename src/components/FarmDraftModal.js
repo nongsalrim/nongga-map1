@@ -88,7 +88,7 @@ function getInitialHongseongDraft() {
 }
 
 /**
- * 2. 저장된 모든 농가 draft 목록 조회
+ * 2. 저장된 모든 농가 draft 목록 조회 (안동현 대표 DB 무조건 상단 보장)
  */
 export function getFarmDrafts() {
   const isSharedLink = typeof window !== 'undefined' && Boolean(new URLSearchParams(window.location.search).get('data'));
@@ -97,17 +97,22 @@ export function getFarmDrafts() {
     return [];
   }
   try {
+    const hongseongDraft = getInitialHongseongDraft();
     const data = localStorage.getItem(DRAFT_STORAGE_KEY);
     if (!data) {
-      const initialHongseongDraft = getInitialHongseongDraft();
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify([initialHongseongDraft]));
-      return [initialHongseongDraft];
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify([hongseongDraft]));
+      return [hongseongDraft];
     }
-    const parsed = JSON.parse(data);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      const initialHongseongDraft = getInitialHongseongDraft();
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify([initialHongseongDraft]));
-      return [initialHongseongDraft];
+    let parsed = JSON.parse(data);
+    if (!Array.isArray(parsed)) parsed = [];
+
+    // 안동현 대표님 DB가 유저 기존 저장목록에 없으면 무조건 맨 위에 자동 탑재!
+    const hasAhn = parsed.some(d => d.id === 'draft_hongseong_strawberry_001' || (d.name && d.name.includes('안동현')));
+    if (!hasAhn) {
+      parsed.unshift(hongseongDraft);
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(parsed));
+      } catch (e) {}
     }
     return parsed;
   } catch (err) {
