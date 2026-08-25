@@ -243,6 +243,25 @@ export function openFarmDraftModal(onLoadDraft, onNewFarm) {
         <!-- 본문 리스트 영역 -->
         <div style="padding: 20px 24px; overflow-y: auto; flex: 1;">
           
+          <!-- 🌟 경영 20년차 컨설턴트 검증 안동현 대표 정밀 DB 퀵 로드 뱃지 박스 -->
+          <div style="background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(16,185,129,0.15)); border: 2px solid #F59E0B; border-radius: 14px; padding: 16px 20px; margin-bottom: 18px; box-shadow: 0 4px 15px rgba(245,158,11,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div>
+                <span style="background:#F59E0B; color:#0F172A; font-size:11.5px; font-weight:900; padding:3px 10px; border-radius:10px; text-transform:uppercase; letter-spacing:0.5px;">
+                  🌟 1:1 정밀 컨설팅 대표 검증 DB
+                </span>
+                <h3 style="font-size:16.5px; font-weight:900; color:#FFF; margin-top:6px; display:flex; align-items:center; gap:6px;">
+                  🍓 [충남 홍성] 안동현 대표 1:1 맞춤 청년농 딸기 스마트팜 (1,000평)
+                </h3>
+                <p style="font-size:12px; color:#CBD5E1; margin-top:4px; line-height:1.4;">
+                  📍 충남 홍성군 | 🌾 시설딸기(수경) | 💰 매출 1.21억 | 🏢 경영비 5,580만 | 🏛️ 자산 5.9억 | 💳 대출 5억
+                </p>
+              </div>
+              <button id="btn-load-ahn-dong-hyun-preset" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: #0F172A; border: none; padding: 10px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 12px rgba(245,158,11,0.4);">
+                ⚡ 안동현 대표 DB 불러오기
+              </button>
+            </div>
+          </div>
           ${autoSave ? `
             <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
               <div>
@@ -316,6 +335,14 @@ export function openFarmDraftModal(onLoadDraft, onNewFarm) {
     `;
 
     // Bind event handlers inside modal with e.currentTarget / closest
+    const btnAhnPreset = modalOverlay.querySelector('#btn-load-ahn-dong-hyun-preset');
+    if (btnAhnPreset) {
+      btnAhnPreset.addEventListener('click', () => {
+        try { document.body.removeChild(modalOverlay); } catch(e) {}
+        if (onLoadDraft) onLoadDraft(getInitialHongseongDraft());
+      });
+    }
+
     const btnClose = modalOverlay.querySelector('#draft-btn-close');
     if (btnClose) {
       btnClose.addEventListener('click', () => {
