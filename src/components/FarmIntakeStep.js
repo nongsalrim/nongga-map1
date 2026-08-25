@@ -60,7 +60,10 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     ];
   }
 
-  let costItemsState = currentModel.costItemsState || null;
+  let costItemsState = currentModel.costItemsState ? JSON.parse(JSON.stringify(currentModel.costItemsState)) : null;
+  if (costItemsState) {
+    costItemsState._isLoadedFromDraft = true;
+  }
   let toastMsg = null;
   let lastAutoSaveTime = null;
 
@@ -170,61 +173,63 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
         const match = loan.대출기간.match(/^(\d+)/);
         if (match) period = parseInt(match[1], 10);
       }
-      if (!period) period = 10;
+      period = period || 5;
 
-      let grace = parseNum(loan.거치기간 !== undefined ? loan.거치기간 : (loan.grace !== undefined ? loan.grace : loan.gracePeriod));
-      if (grace === undefined && typeof loan.대출기간 === 'string') {
-        const match = loan.대출기간.match(/(\d+)\s*년\s*거치/);
+      let grace = parseNum(loan.거치기간 !== undefined ? loan.거치기간 : (loan.grace !== undefined ? loan.grace : loan.거치));
+      if (grace === undefined && typeof loan.거치기간 === 'string') {
+        const match = loan.거치기간.match(/^(\d+)/);
         if (match) grace = parseInt(match[1], 10);
       }
-      if (grace === undefined) grace = 0;
+      grace = grace || 0;
 
-      const type = loan.대출조건 || loan.대출종류 || loan.type || '원리금균등';
-      const repayYears = Math.max(1, period - grace);
+      const condition = loan.대출조건 || loan.condition || '원리금균등';
 
-      for (let y = 1; y <= 5; y++) {
-        if (balance <= 0) continue;
+      schedule.forEach(s => {
+        const calYear = s.calendarYear;
+        const elapsedYears = calYear - startYear;
 
-        const calYear = targetYear + y - 1;
-        const loanYearIndex = Math.max(1, calYear - startYear + 1);
+        if (elapsedYears < 0 || elapsedYears >= period) return;
 
-        const activeRate = (loanYearIndex <= zeroYears) ? 0 : rate;
-        let p = 0;
-        let i = Math.round(balance * activeRate);
+        const yearInLoan = elapsedYears + 1;
+        const isSubsidized = (yearInLoan <= zeroYears);
+        const effectiveRate = isSubsidized ? 0 : rate;
 
-        if (loanYearIndex <= grace) {
-          p = 0;
-          schedule[y - 1].graceCount++;
+        const isGracePeriod = (yearInLoan <= grace);
+        const repayYearsTotal = Math.max(1, period - grace);
+
+        let pRepay = 0;
+        let iRepay = Math.round(balance * effectiveRate);
+
+        if (isGracePeriod) {
+          pRepay = 0;
+          s.graceCount++;
         } else {
-          schedule[y - 1].repayCount++;
-          if (type === '원금균등') {
-            p = Math.min(balance, Math.round((parseNum(loan.대출금액) || 0) / repayYears));
-          } else if (type === '일시상환') {
-            if (loanYearIndex === period) {
-              p = balance;
+          s.repayCount++;
+          const yearInRepayment = yearInLoan - grace;
+
+          if (condition.includes('원금균등')) {
+            pRepay = Math.round((loan.대출금액 || loan.amount || loan.원금) / repayYearsTotal);
+          } else if (condition.includes('일시상환')) {
+            if (yearInRepayment === repayYearsTotal) {
+              pRepay = balance;
             } else {
-              p = 0;
+              pRepay = 0;
             }
           } else {
-            const P = balance;
-            const r = activeRate;
-            const remYears = Math.max(1, period - loanYearIndex + 1);
-            let pmt = 0;
-            if (r > 0) {
-              pmt = Math.round(P * (r * Math.pow(1 + r, remYears)) / (Math.pow(1 + r, remYears) - 1));
+            // 원리금균등 (Standard Annuity Formula)
+            if (effectiveRate > 0) {
+              const pmt = (loan.대출금액 || loan.amount || loan.원금) * (effectiveRate * Math.pow(1 + effectiveRate, repayYearsTotal)) / (Math.pow(1 + effectiveRate, repayYearsTotal) - 1);
+              pRepay = Math.round(pmt - iRepay);
             } else {
-              pmt = Math.round(P / remYears);
+              pRepay = Math.round((loan.대출금액 || loan.amount || loan.원금) / repayYearsTotal);
             }
-            p = Math.min(balance, Math.max(0, pmt - i));
           }
         }
 
-        balance = Math.max(0, balance - p);
-
-        schedule[y - 1].principal += p;
-        schedule[y - 1].interest += i;
-        schedule[y - 1].total += (p + i);
-      }
+        s.principal += pRepay;
+        s.interest += iRepay;
+        s.total += (pRepay + iRepay);
+      });
     });
 
     let totalInitialBalance = loans.reduce((sum, l) => sum + (parseNum(l.대출금액 || l.amount || l.원금) || 0), 0);
@@ -258,40 +263,59 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
       return sum + res.yearInterest;
     }, 0);
 
-    const cb = baseCropModel.costBreakdown || [];
-    const totalBaseExpenses = (baseCropModel.operatingExpenses || 50000000) * totalScaleFactor;
+    // If base crop model has specific custom costItemsState (e.g. Ahn Dong-hyun custom cost items), load them directly!
+    if (baseCropModel.costItemsState && baseCropModel.costItemsState.variable && baseCropModel.costItemsState.variable.length > 0) {
+      costItemsState = JSON.parse(JSON.stringify(baseCropModel.costItemsState));
+      costItemsState._cropName = farmState.cropName;
+      costItemsState._scale = totalScaleFactor;
 
-    function findScaledCost(targetKeys, defaultPct) {
-      for (const item of cb) {
-        if (targetKeys.some(k => item.name.includes(k))) {
-          return Math.round(item.cost * totalScaleFactor);
-        }
+      const intItem = costItemsState.variable.find(i => i.name.includes('대출이자') || i.key === '대출이자');
+      if (intItem) {
+        intItem.cost = year1InterestTotal;
+        intItem.isAutoSynced = true;
       }
-      return Math.round(totalBaseExpenses * defaultPct);
+
+      const depItem = costItemsState.fixed.find(i => i.name.includes('상각비') || i.key === '감가상각비');
+      if (depItem && assetMetrics.totalAnnualDep > 0) {
+        depItem.cost = assetMetrics.totalAnnualDep;
+        depItem.isAutoSynced = true;
+      }
+    } else {
+      const cb = baseCropModel.costBreakdown || [];
+      const totalBaseExpenses = (baseCropModel.operatingExpenses || 50000000) * totalScaleFactor;
+
+      function findScaledCost(targetKeys, defaultPct) {
+        for (const item of cb) {
+          if (targetKeys.some(k => item.name.includes(k))) {
+            return Math.round(item.cost * totalScaleFactor);
+          }
+        }
+        return Math.round(totalBaseExpenses * defaultPct);
+      }
+
+      costItemsState = {
+        _cropName: farmState.cropName,
+        _scale: totalScaleFactor,
+        variable: [
+          { name: '종자/종묘비', key: '종자/종묘비', cost: findScaledCost(['종자', '종묘', '입목'], 0.10) },
+          { name: '보통비료비', key: '보통비료비', cost: findScaledCost(['보통비료'], 0.08) },
+          { name: '부산물비료비', key: '부산물비료비', cost: findScaledCost(['부산물비료', '퇴비'], 0.07) },
+          { name: '농약/방제비', key: '농약비', cost: findScaledCost(['농약', '방제'], 0.08) },
+          { name: '광열비/동력비', key: '기타비용 및 광열비', cost: findScaledCost(['광열비', '동력비', '기타비용'], 0.08) },
+          { name: '고용인건비', key: '고용인건비', cost: findScaledCost(['인건비'], 0.10) },
+          { name: '기타재료비', key: '기타재료비', cost: findScaledCost(['재료비'], 0.15) },
+          { name: '대출이자 (순수 금융비용)', key: '대출이자', cost: year1InterestTotal, isAutoSynced: true }
+        ],
+        fixed: [
+          { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: assetMetrics.totalAnnualDep > 0 ? assetMetrics.totalAnnualDep : findScaledCost(['상각비'], 0.12), isAutoSynced: assetMetrics.totalAnnualDep > 0 },
+          { name: '자동차/운반비', key: '자동차비', cost: findScaledCost(['자동차', '운반', '차량'], 0.10) },
+          { name: '수리 및 유지관리비', key: '수리비', cost: findScaledCost(['수리'], 0.05) },
+          { name: '임차료/기타 고정비', key: '기타고정비', cost: findScaledCost(['기타고정비', '임차료'], 0.07) }
+        ]
+      };
     }
 
-    costItemsState = {
-      _cropName: farmState.cropName,
-      _scale: totalScaleFactor,
-      variable: [
-        { name: '종자/종묘비', key: '종자/종묘비', cost: findScaledCost(['종자', '종묘', '입목'], 0.10) },
-        { name: '보통비료비', key: '보통비료비', cost: findScaledCost(['보통비료'], 0.08) },
-        { name: '부산물비료비', key: '부산물비료비', cost: findScaledCost(['부산물비료', '퇴비'], 0.07) },
-        { name: '농약/방제비', key: '농약비', cost: findScaledCost(['농약', '방제'], 0.08) },
-        { name: '광열비/동력비', key: '기타비용 및 광열비', cost: findScaledCost(['광열비', '동력비', '기타비용'], 0.08) },
-        { name: '고용인건비', key: '고용인건비', cost: findScaledCost(['인건비'], 0.10) },
-        { name: '기타재료비', key: '기타재료비', cost: findScaledCost(['재료비'], 0.15) },
-        { name: '대출이자 (순수 금융비용)', key: '대출이자', cost: year1InterestTotal, isAutoSynced: true }
-      ],
-      fixed: [
-        { name: '시설/대농구 상각비', key: '대농구/시설상각비', cost: assetMetrics.totalAnnualDep > 0 ? assetMetrics.totalAnnualDep : findScaledCost(['상각비'], 0.12), isAutoSynced: assetMetrics.totalAnnualDep > 0 },
-        { name: '자동차/운반비', key: '자동차비', cost: findScaledCost(['자동차', '운반', '차량'], 0.10) },
-        { name: '수리 및 유지관리비', key: '수리비', cost: findScaledCost(['수리'], 0.05) },
-        { name: '임차료/기타 고정비', key: '기타고정비', cost: findScaledCost(['기타고정비', '임차료'], 0.07) }
-      ]
-    };
-
-    toastMsg = `✅ [농진청/산림청 ${farmState.region}지역 소득조사표] ${farmState.cropName} (${formatComma(farmState.areaPyung)}평 기준) 표준 예산 및 원물 매출 복원 완료!`;
+    toastMsg = `✅ [${farmState.farmName || farmState.cropName}] 1:1 맞춤 정밀 변동비/고정비 예산 및 원가 복원 완료!`;
     triggerAutoSave();
   }
 
