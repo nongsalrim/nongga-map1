@@ -44,6 +44,49 @@ export function saveFarmDraft(farmState, costItemsState, assetsState, loansState
   }
 }
 
+function getInitialHongseongDraft() {
+  return {
+    id: 'draft_hongseong_strawberry_001',
+    name: '[충남 홍성] 1:1 맞춤 청년농 딸기 스마트팜 (홍성군 딸기농장)',
+    savedAt: '2026. 8. 25. 홍성군 컨설팅 검증 저장건',
+    farmState: {
+      farmName: '안동현 (홍성 딸기농장)',
+      region: '충남',
+      category: '시설채소',
+      cropName: '시설딸기(수경)',
+      areaM2: 3306,
+      areaPyung: 1000,
+      cycles: 1,
+      revenue: 121500000,
+      operatingExpenses: 55800000,
+      income: 65700000,
+      yieldKg: 13500,
+      pricePerKg: 9000
+    },
+    costItemsState: {
+      variable: [
+        { key: '종자비', name: '종자/종묘비', cost: 6696000 },
+        { key: '비료비', name: '보통비료비', cost: 4464000 },
+        { key: '농약비', name: '농약비', cost: 2790000 },
+        { key: '광열비', name: '광열동력비', cost: 5580000 },
+        { key: '대출이자', name: '대출이자(금융비용)', cost: 3500000, isAutoSynced: true }
+      ],
+      fixed: [
+        { key: '감가상각비', name: '대농구/시설 상각비', cost: 8370000, isAutoSynced: true },
+        { key: '기타고정비', name: '기타 고정비용', cost: 6138000 }
+      ]
+    },
+    assetsState: {
+      landVal: 150000000,
+      buildingVal: 120000000,
+      machineryVal: 45000000
+    },
+    loansState: [
+      { id: 1, name: '농업정책자금 (시설소비)', amount: 100000000, rate: 2.0, termYears: 10, graceYears: 3 }
+    ]
+  };
+}
+
 /**
  * 2. 저장된 모든 농가 draft 목록 조회
  */
@@ -55,9 +98,20 @@ export function getFarmDrafts() {
   }
   try {
     const data = localStorage.getItem(DRAFT_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    if (!data) {
+      const initialHongseongDraft = getInitialHongseongDraft();
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify([initialHongseongDraft]));
+      return [initialHongseongDraft];
+    }
+    const parsed = JSON.parse(data);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      const initialHongseongDraft = getInitialHongseongDraft();
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify([initialHongseongDraft]));
+      return [initialHongseongDraft];
+    }
+    return parsed;
   } catch (err) {
-    return [];
+    return [getInitialHongseongDraft()];
   }
 }
 

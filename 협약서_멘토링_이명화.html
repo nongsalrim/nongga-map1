@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>농업기술명인–청년농업인 멘토링 협약서</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green-dark:  #1a4a2e;
+      --green-mid:   #2d6a4f;
+      --green-light: #52b788;
+      --green-pale:  #d8f3dc;
+      --gold:        #c9a84c;
+      --gold-light:  #f5e6bc;
+      --cream:       #fdfaf4;
+      --ink:         #1c1c1c;
+      --ink-soft:    #3a3a3a;
+      --border:      #b7d5c3;
+    }
+
+    html { background: #dce6dd; }
+    body {
+      font-family: 'Noto Serif KR', 'Malgun Gothic', serif;
+      color: var(--ink);
+      background: #dce6dd;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      padding: 40px 16px 80px;
+    }
+
+    /* ── PAGE WRAPPER ── */
+    .page {
+      width: 100%;
+      max-width: 860px;
+      background: var(--cream);
+      box-shadow: 0 4px 6px rgba(0,0,0,.07), 0 14px 44px rgba(0,0,0,.15), 0 0 0 1px rgba(0,0,0,.06);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .page-label {
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 11px;
+      color: #888;
+      text-align: center;
+      padding: 6px 0 0;
+      letter-spacing: 2px;
+    }
+
+    /* ── HEADER (full) ── */
+    .header-banner {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 60%, #3a8c60 100%);
+      padding: 46px 56px 38px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header-banner::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .header-banner::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--gold) 0%, #e8c97a 50%, var(--gold) 100%);
+    }
+    .deco-circle { position: absolute; border-radius: 50%; border: 1px solid rgba(255,255,255,0.12); }
+    .deco-1 { width: 220px; height: 220px; top: -80px; right: -60px; }
+    .deco-2 { width: 140px; height: 140px; top: -20px; right:  60px; }
+    .deco-3 { width:  80px; height:  80px; bottom: 20px; right: 180px; }
+
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px; padding: 5px 14px; margin-bottom: 16px;
+    }
+    .header-badge span {
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 11px; font-weight: 500;
+      color: rgba(255,255,255,0.85); letter-spacing: 1.5px;
+    }
+    .badge-dot { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; }
+
+    .header-title {
+      font-size: 28px; font-weight: 700;
+      color: #fff; letter-spacing: 3px;
+      white-space: nowrap; line-height: 1.2; position: relative;
+    }
+    .header-title em { font-style: normal; color: var(--gold); }
+    .header-subtitle {
+      margin-top: 8px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 12.5px; color: rgba(255,255,255,0.6); letter-spacing: 0.8px;
+    }
+
+    /* ── HEADER (compact, page 2) ── */
+    .header-compact {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
+      padding: 22px 56px;
+      position: relative;
+      display: flex; align-items: center; justify-content: space-between;
+      overflow: hidden;
+    }
+    .header-compact::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold) 0%, #e8c97a 50%, var(--gold) 100%);
+    }
+    .compact-title {
+      font-size: 18px; font-weight: 700;
+      color: #fff; letter-spacing: 2px; white-space: nowrap;
+    }
+    .compact-title em { font-style: normal; color: var(--gold); }
+    .compact-page {
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 1px;
+    }
+
+    /* ── BODY ── */
+    .body-wrap { padding: 40px 56px 48px; }
+
+    /* INFO TABLE */
+    .info-section { margin-bottom: 32px; }
+    .info-table { width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px var(--border); }
+    .info-table th, .info-table td { padding: 10px 16px; font-size: 13.5px; line-height: 1.5; border: 1px solid var(--border); }
+    .info-table thead th { background: var(--green-mid); color: #fff; font-weight: 600; font-family: 'Noto Sans KR', sans-serif; font-size: 13px; letter-spacing: 0.5px; text-align: center; }
+    .info-table tbody th { background: var(--green-pale); color: var(--green-dark); font-weight: 600; font-family: 'Noto Sans KR', sans-serif; font-size: 13px; text-align: center; width: 80px; }
+    .info-table tbody td { background: #fff; color: var(--ink-soft); font-family: 'Noto Sans KR', sans-serif; }
+    .info-table .label-cell { background: #f0f7f3; color: var(--green-mid); font-weight: 500; width: 110px; text-align: center; }
+
+    /* PREAMBLE */
+    .preamble {
+      background: linear-gradient(135deg, #f0f7f3 0%, var(--cream) 100%);
+      border-left: 4px solid var(--green-light);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px; margin-bottom: 32px;
+      font-size: 13.5px; line-height: 1.9;
+      color: var(--ink-soft); font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    /* ARTICLES */
+    .article { margin-bottom: 28px; }
+    .article-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .article-number {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      background: var(--green-mid); color: #fff;
+      border-radius: 50%; font-size: 12px; font-weight: 700;
+      font-family: 'Noto Sans KR', sans-serif; flex-shrink: 0;
+    }
+    .article-title { font-size: 15px; font-weight: 700; color: var(--green-dark); letter-spacing: 0.5px; }
+    .article-title em { font-style: normal; color: var(--green-mid); }
+    .article-body { padding-left: 42px; font-size: 13px; line-height: 1.95; color: var(--ink-soft); font-family: 'Noto Sans KR', sans-serif; }
+    .article-body p { margin-bottom: 5px; }
+    .sub-item { display: flex; gap: 8px; margin-bottom: 5px; }
+    .sub-item-num { flex-shrink: 0; width: 20px; color: var(--green-mid); font-weight: 600; }
+    .section-sep { height: 1px; background: linear-gradient(90deg, var(--border), transparent); margin: 2px 0 28px; }
+
+    /* AMOUNT TABLE */
+    .amount-note { font-size: 12px; color: #666; text-align: right; margin-bottom: 5px; font-family: 'Noto Sans KR', sans-serif; }
+    .amount-table { width: 100%; border-collapse: collapse; margin-top: 5px; border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px var(--border); }
+    .amount-table th { background: var(--green-mid); color: #fff; font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 600; padding: 9px 14px; text-align: center; border: 1px solid rgba(255,255,255,0.15); }
+    .amount-table td { background: #fff; font-family: 'Noto Sans KR', sans-serif; font-size: 14px; padding: 11px 14px; text-align: center; border: 1px solid var(--border); }
+    .amount-table td.total { font-weight: 700; color: var(--green-dark); font-size: 15px; }
+
+    /* GOLD RULE */
+    .gold-rule { height: 2px; background: linear-gradient(90deg, var(--gold), #e8c97a 50%, transparent); margin: 36px 0 32px; }
+
+    /* ── SIGNATURE ── */
+    .sign-date { text-align: center; font-size: 15px; font-weight: 600; color: var(--ink-soft); letter-spacing: 8px; margin-bottom: 32px; font-family: 'Noto Serif KR', serif; }
+
+    /* 멘토 - 1줄 전체 폭 */
+    .sign-mentor {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 28px;
+      position: relative; overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .sign-mentor::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--green-dark), var(--green-mid)); }
+
+    /* 멘티 - 2열 나란히 */
+    .sign-mentee-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .sign-mentee {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 28px;
+      position: relative; overflow: hidden;
+    }
+    .sign-mentee::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--green-mid), var(--green-light)); }
+
+    .sign-role { font-family: 'Noto Sans KR', sans-serif; font-size: 11.5px; font-weight: 600; color: var(--green-mid); letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; }
+    .sign-inner { display: flex; align-items: center; gap: 0; }
+    .sign-field { display: flex; align-items: center; flex: 1; }
+    .sign-field + .sign-field { margin-left: 32px; padding-left: 32px; border-left: 1px solid var(--border); }
+    .sign-label { font-family: 'Noto Sans KR', sans-serif; font-size: 12.5px; color: #888; width: 52px; flex-shrink: 0; }
+    .sign-value { font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 500; color: var(--ink); border-bottom: 1px solid #ddd; padding-bottom: 2px; flex: 1; }
+    .sign-stamp {
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-left: 12px; width: 36px; height: 36px;
+      border-radius: 50%; border: 2px solid var(--gold);
+      color: var(--gold); font-size: 10px; font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* FOOTER */
+    .footer-banner {
+      background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+      padding: 16px 56px;
+      display: flex; align-items: center; justify-content: center; gap: 14px;
+    }
+    .footer-banner span { font-family: 'Noto Sans KR', sans-serif; font-size: 11.5px; color: rgba(255,255,255,0.6); letter-spacing: 0.5px; }
+    .footer-dot { width: 4px; height: 4px; background: var(--gold); border-radius: 50%; }
+
+    /* ── PRINT ── */
+    @media print {
+      @page { size: A4 portrait; margin: 6mm 8mm; }
+
+      html, body {
+        background: #fff !important;
+        padding: 0 !important;
+        gap: 0 !important;
+      }
+
+      /* 두 .page를 한 장에 담기: 페이지 브레이크 없이 연속 출력 */
+      .page {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 0 !important;
+      }
+      .page:last-child { page-break-after: auto; break-after: auto; }
+      .page-label { display: none !important; }
+
+      /* 헤더 축소 */
+      .header-banner { padding: 14px 28px 10px !important; }
+      .header-title  { font-size: 16px !important; letter-spacing: 1.5px !important; }
+      .header-subtitle { font-size: 9px !important; margin-top: 3px !important; }
+      .header-badge  { padding: 3px 8px !important; margin-bottom: 6px !important; }
+      .header-badge span { font-size: 8px !important; }
+      .deco-circle   { display: none !important; }
+
+      .header-compact { padding: 10px 28px !important; }
+      .compact-title  { font-size: 13px !important; letter-spacing: 1px !important; }
+      .compact-page   { font-size: 9px !important; }
+
+      /* 본문 패딩·여백 축소 */
+      .body-wrap { padding: 12px 28px 14px !important; }
+
+      .info-section   { margin-bottom: 10px !important; }
+      .info-table th,
+      .info-table td  { padding: 5px 8px !important; font-size: 10px !important; line-height: 1.3 !important; }
+
+      .preamble {
+        padding: 8px 12px !important;
+        margin-bottom: 10px !important;
+        font-size: 9.5px !important;
+        line-height: 1.55 !important;
+      }
+
+      .article        { margin-bottom: 8px !important; }
+      .article-header { margin-bottom: 4px !important; }
+      .article-number { width: 20px !important; height: 20px !important; font-size: 9px !important; }
+      .article-title  { font-size: 10.5px !important; }
+      .article-body   { padding-left: 26px !important; font-size: 9.5px !important; line-height: 1.55 !important; }
+      .article-body p { margin-bottom: 2px !important; }
+      .sub-item       { margin-bottom: 2px !important; }
+      .section-sep    { margin: 1px 0 8px !important; }
+
+      .amount-note    { font-size: 9px !important; margin-bottom: 3px !important; }
+      .amount-table th,
+      .amount-table td { padding: 5px 8px !important; font-size: 10px !important; }
+      .amount-table td.total { font-size: 11px !important; }
+
+      /* 서명란 축소 */
+      .gold-rule      { margin: 10px 0 8px !important; }
+      .sign-date      { font-size: 11px !important; margin-bottom: 10px !important; }
+      .sign-mentor    { padding: 10px 14px !important; margin-bottom: 8px !important; }
+      .sign-mentee    { padding: 10px 14px !important; }
+      .sign-mentee-row { gap: 10px !important; margin-top: 8px !important; }
+      .sign-role      { font-size: 8.5px !important; margin-bottom: 6px !important; }
+      .sign-label     { font-size: 9px !important; width: 38px !important; }
+      .sign-value     { font-size: 10.5px !important; }
+      .sign-stamp     { width: 26px !important; height: 26px !important; font-size: 8px !important; }
+
+      /* 푸터 축소 */
+      .footer-banner  { padding: 7px 28px !important; }
+      .footer-banner span { font-size: 8.5px !important; }
+
+      /* 색상 보정 */
+      .header-banner, .header-compact,
+      .info-table thead th, .info-table tbody th,
+      .amount-table th, .footer-banner,
+      .sign-mentor::before, .sign-mentee::before
+        { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ PAGE 1 ═══════════════════════════════ -->
+<div class="page">
+  <div class="page-label">— 1 / 2 —</div>
+
+  <!-- HEADER -->
+  <div class="header-banner">
+    <div class="deco-circle deco-1"></div>
+    <div class="deco-circle deco-2"></div>
+    <div class="deco-circle deco-3"></div>
+    <div class="header-badge">
+      <div class="badge-dot"></div>
+      <span>농촌진흥청 · RURAL DEVELOPMENT ADMINISTRATION</span>
+    </div>
+    <h1 class="header-title">농업기술명인<em>–</em>청년농업인 멘토링 협약서</h1>
+    <p class="header-subtitle">Mentoring Agreement · 농업기술명인–청년농업인 멘토링 프로그램</p>
+  </div>
+
+  <div class="body-wrap">
+
+    <!-- 협약 기본 정보 -->
+    <div class="info-section">
+      <table class="info-table">
+        <thead>
+          <tr>
+            <th colspan="2">협 약 명</th>
+            <th colspan="2">농업기술명인 – 청년농업인 멘토링</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th rowspan="3">협 약<br>당사자<br>(성명)</th>
+            <td class="label-cell">주관기관</td>
+            <td colspan="2">농촌진흥청</td>
+          </tr>
+          <tr>
+            <td class="label-cell">멘토</td>
+            <td colspan="2">이 명 화</td>
+          </tr>
+          <tr>
+            <td class="label-cell">멘티</td>
+            <td>김 설 민</td>
+            <td>정 창 대</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 전문 -->
+    <div class="preamble">
+      농업명인의 숙련된 영농 기술과 현장 노하우를 전수하고, 실습 교육생의 성공적인 영농 정착 및 실무 역량 강화를 도모하고자 농업기술명인(이하 멘토)과 실습교육생(이하 멘티)은 상호신뢰와 존중을 바탕으로 다음과 같이 협약을 체결한다.
+    </div>
+
+    <!-- 제1조 -->
+    <div class="article">
+      <div class="article-header">
+        <div class="article-number">1</div>
+        <div class="article-title">제1조 <em>(목적)</em></div>
+      </div>
+      <div class="article-body">
+        <p>본 협약은 '멘토'의 축적된 재배·경영기술 등 농업과 관련된 전반적인 지식을 바탕으로 '멘티'의 체계적인 현장실습을 지원하고, 상호 유기적인 협력체계를 구축하여 지역에 안정적으로 정착할 수 있도록 지원하는 것을 목적으로 한다.</p>
+      </div>
+    </div>
+    <div class="section-sep"></div>
+
+    <!-- 제2조 -->
+    <div class="article">
+      <div class="article-header">
+        <div class="article-number">2</div>
+        <div class="article-title">제2조 <em>(협약기간)</em></div>
+      </div>
+      <div class="article-body">
+        <div class="sub-item"><span class="sub-item-num">①</span><span>본 협약의 기간은 2026년 9월부터 12월까지로 한다.</span></div>
+        <div class="sub-item"><span class="sub-item-num">②</span><span>협약 기간의 연장 또는 변경은 주관기관의 승인하에 멘토와 멘티간 상호 협의에 따라 결정한다.</span></div>
+      </div>
+    </div>
+    <div class="section-sep"></div>
+
+    <!-- 제3조 -->
+    <div class="article">
+      <div class="article-header">
+        <div class="article-number">3</div>
+        <div class="article-title">제3조 <em>(협약금액)</em></div>
+      </div>
+      <div class="article-body">
+        <p>"멘토링"의 총 협약금액은 일금 일백이십만원(₩1,200,000원)(세액 포함)으로 하고, 세부 내역은 아래와 같다.</p>
+        <p class="amount-note">（단위 : 원）</p>
+        <table class="amount-table">
+          <thead>
+            <tr>
+              <th>총 협약금액</th>
+              <th>월간 멘토링비용</th>
+              <th>기간</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="total">1,200,000</td>
+              <td>300,000</td>
+              <td>총 4개월</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="section-sep"></div>
+
+    <!-- 제4조 -->
+    <div class="article">
+      <div class="article-header">
+        <div class="article-number">4</div>
+        <div class="article-title">제4조 <em>(멘토의 역할과 의무)</em></div>
+      </div>
+      <div class="article-body">
+        <p style="margin-bottom:8px;">멘토는 멘티의 성장과 성공적인 실습을 위하여 다음 각 호의 역할을 성실히 수행한다.</p>
+        <div class="sub-item"><span class="sub-item-num">1.</span><span><strong>영농기술 및 노하우 전수</strong> : 단계별 재배·경영기술, 농기계 운용, 생육관리, 병해충 방제 등 현장중심 전문지식 제공</span></div>
+        <div class="sub-item"><span class="sub-item-num">2.</span><span><strong>정기적 멘토링 및 피드백</strong> : 정기적인 상담을 통해 멘티의 실습 진척도를 확인하고 멘티의 농장에 적용할 수 있는 방안을 제시</span></div>
+        <div class="sub-item"><span class="sub-item-num">3.</span><span><strong>영농 창업 및 정착 지원</strong> : 영농 계획 수립, 판로 확보, 지역사회 정착 등 농장 창업에 필요한 다양한 조언 및 지원</span></div>
+      </div>
+    </div>
+
+  </div><!-- /body-wrap -->
+
+  <div class="footer-banner">
+    <span>농업기술명인–청년농업인 멘토링 프로그램</span>
+    <div class="footer-dot"></div>
+    <span>농촌진흥청</span>
+    <div class="footer-dot"></div>
+    <span>Rural Development Administration</span>
+  </div>
+</div><!-- /page 1 -->
+
+
+<!-- ═══════════════════════════════ PAGE 2 ═══════════════════════════════ -->
+<div class="page">
+  <div class="page-label">— 2 / 2 —</div>
+
+  <!-- HEADER compact -->
+  <div class="header-compact">
+    <div class="deco-circle deco-1"></div>
+    <h2 class="compact-title">농업기술명인<em>–</em>청년농업인 멘토링 협약서</h2>
+    <span class="compact-page">농촌진흥청</span>
+  </div>
+
+  <div class="body-wrap">
+
+    <!-- 제5조 -->
+    <div class="article">
+      <div class="article-header">
+        <div class="article-number">5</div>
+        <div class="article-title">제5조 <em>(멘티의 의향과 의무)</em></div>
+      </div>
+      <div class="article-body">
+        <p style="margin-bottom:8px;">멘티는 멘토의 지도를 바탕으로 적극적으로 실습에 임하며 다음 각 호의 의무는 다한다.</p>
+        <div class="sub-item"><span class="sub-item-num">1.</span><span><strong>성실한 실습 참여</strong> : 멘토의 기술 지도 방침에 따라 주어진 실습 과제를 성실히 수행</span></div>
+        <div class="sub-item"><span class="sub-item-num">2.</span><span><strong>실습 내용 기록</strong> : 멘토링 내용과 실습 과정에서 발생하는 각종 성과를 제공된 일지 양식에 자세히 기록</span></div>
+      </div>
+    </div>
+    <div class="section-sep"></div>
+
+    <!-- 제6조 -->
+    <div class="article">
+      <div class="article-header">
+        <div class="article-number">6</div>
+        <div class="article-title">제6조 <em>(비밀유지 및 신뢰 원칙)</em></div>
+      </div>
+      <div class="article-body">
+        <div class="sub-item"><span class="sub-item-num">①</span><span>멘토와 멘티는 실습 과정에서 취득한 상호간의 농장 운영 노하우, 경영 및 개인 정보 등을 제3자에게 무단으로 누설하거나 부당하게 활용하지 않는다.</span></div>
+        <div class="sub-item"><span class="sub-item-num">②</span><span>상호간의 약속과 신뢰를 지키며 건전한 멘토링 문화 조성에 적극 협력한다.</span></div>
+      </div>
+    </div>
+    <div class="section-sep"></div>
+
+    <!-- 제7조 -->
+    <div class="article">
+      <div class="article-header">
+        <div class="article-number">7</div>
+        <div class="article-title">제7조 <em>(협약의 효력 및 보관)</em></div>
+      </div>
+      <div class="article-body">
+        <p>본 협약은 당사자가 서명 또는 날인한 날로부터 효력이 발생한다. 본 협약서의 내용을 성실히 증명하기 위하여 협약서 2부를 작성하여 서명·날인 후 멘토와 멘티가 각 1부씩 보관한다.</p>
+      </div>
+    </div>
+
+    <!-- 금선 -->
+    <div class="gold-rule"></div>
+
+    <!-- 서명란 -->
+    <p class="sign-date">2026년 &nbsp; 8월 &nbsp; 27일</p>
+
+    <!-- 주관기관 -->
+    <div class="sign-mentor" style="margin-bottom:20px; background: linear-gradient(135deg,#f8fbf9,#fff);">
+      <div class="sign-role">주관기관 · Supervising Authority</div>
+      <div class="sign-inner">
+        <div class="sign-field">
+          <span class="sign-label">기관명</span>
+          <span class="sign-value">농촌진흥청</span>
+        </div>
+        <div class="sign-field">
+          <span class="sign-label">대표자</span>
+          <span class="sign-value">이 승 돈</span>
+          <span class="sign-stamp">인</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 멘토 - 1줄 -->
+    <div class="sign-mentor">
+      <div class="sign-role">농업기술명인 · Mentor</div>
+      <div class="sign-inner">
+        <div class="sign-field">
+          <span class="sign-label">이 름</span>
+          <span class="sign-value">이 명 화</span>
+          <span class="sign-stamp">인</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 멘티 - 2명 나란히 1줄 -->
+    <div class="sign-mentee-row" style="margin-top:20px;">
+      <div class="sign-mentee">
+        <div class="sign-role">청년농업인 멘티 1 · Mentee</div>
+        <div class="sign-inner">
+          <div class="sign-field">
+            <span class="sign-label">이 름</span>
+            <span class="sign-value">김 설 민</span>
+            <span class="sign-stamp">인</span>
+          </div>
+        </div>
+      </div>
+      <div class="sign-mentee">
+        <div class="sign-role">청년농업인 멘티 2 · Mentee</div>
+        <div class="sign-inner">
+          <div class="sign-field">
+            <span class="sign-label">이 름</span>
+            <span class="sign-value">정 창 대</span>
+            <span class="sign-stamp">인</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /body-wrap -->
+
+  <div class="footer-banner">
+    <span>농업기술명인–청년농업인 멘토링 프로그램</span>
+    <div class="footer-dot"></div>
+    <span>농촌진흥청</span>
+    <div class="footer-dot"></div>
+    <span>Rural Development Administration</span>
+  </div>
+</div><!-- /page 2 -->
+
+</body>
+</html>

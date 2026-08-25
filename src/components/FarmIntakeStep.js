@@ -38,26 +38,25 @@ export function renderFarmIntakeStep(container, currentModel, currentAssets, cur
     revExperience: (currentModel.revenueBreakdown && currentModel.revenueBreakdown.experience !== undefined) ? currentModel.revenueBreakdown.experience : 0
   };
 
-  let assetsState = JSON.parse(JSON.stringify(currentAssets || []));
-  let loansState = JSON.parse(JSON.stringify(currentLoans || []));
+  let assetsState = JSON.parse(JSON.stringify(currentModel.assetsState || currentAssets || []));
+  let loansState = JSON.parse(JSON.stringify(currentModel.loansState || currentLoans || []));
 
   // Default sample assets if empty
   if (!assetsState || assetsState.length === 0) {
-    assetsState = [
-      { 연번: 1, 목록: "주재배 온실 (유리/양액시설)", 구입가: 300000000, 건립년도: 2021, 내용년수: 15 },
-      { 연번: 2, 목록: "난방 시설 및 광열 제어기", 구입가: 50000000, 건립년도: 2022, 내용년수: 10 },
-      { 연번: 3, 목록: "농용 운반차 및 수확기", 구입가: 25000000, 건립년도: 2020, 내용년수: 8 },
-      { 연번: 4, 목록: "저자극 양액 공급 장치", 구입가: 55490348, 건립년도: 2023, 내용년수: 10 }
+    assetsState = baseCropModel.assetsState || [
+      { 연번: 1, 목록: "홍성군 스마트팜 부지 (1,000평)", 구입가: 150000000, 건립년도: 2021, 내용년수: 30 },
+      { 연번: 2, 목록: "주재배 연동 온실 및 양액시설", 구입가: 320000000, 건립년도: 2022, 내용년수: 15 },
+      { 연번: 3, 목록: "ICT 환경제어기 및 고설베드", 구입가: 85000000, 건립년도: 2023, 내용년수: 10 },
+      { 연번: 4, 목록: "난방 보일러 및 수확 운반차", 구입가: 35000000, 건립년도: 2022, 내용년수: 8 }
     ];
   }
 
-  // Default sample loans if empty (충남신보만 5년 무이자 이차보전 적용, 대출 실행년도 2024년 기준)
+  // Default sample loans if empty
   if (!loansState || loansState.length === 0) {
-    loansState = [
-      { 대출조건: "원리금균등", 은행명: "청창농 사업비 대출", 대출금액: 314000000, 대출실행년도: 2024, 이자율: 1.5, 대출기간: 25, 거치기간: 5, 무이자기간: 0 },
-      { 대출조건: "원금균등", 은행명: "충보 신용보증기금 (이차보전)", 대출금액: 200000000, 대출실행년도: 2024, 이자율: 5.0, 대출기간: 7, 거치기간: 2, 무이자기간: 5 },
-      { 대출조건: "일시상환", 은행명: "운전자금 신용대출", 대출금액: 50000000, 대출실행년도: 2024, 이자율: 5.09, 대출기간: 2, 거치기간: 2, 무이자기간: 0 },
-      { 대출조건: "일시상환", 은행명: "시설 보구 신용대출", 대출금액: 60000000, 대출실행년도: 2024, 이자율: 5.08, 대출기간: 2, 거치기간: 2, 무이자기간: 0 }
+    loansState = baseCropModel.loansState || [
+      { 대출조건: "원리금균등", 은행명: "청년농업인 영농정착자금", 대출금액: 300000000, 대출실행년도: 2022, 이자율: 1.5, 대출기간: 25, 거치기간: 5, 무이자기간: 0 },
+      { 대출조건: "원금균등", 은행명: "충남 농어촌진흥기금 (시설)", 대출금액: 150000000, 대출실행년도: 2023, 이자율: 1.0, 대출기간: 10, 거치기간: 3, 무이자기간: 0 },
+      { 대출조건: "일시상환", 은행명: "영농 운전자금 대출", 대출금액: 50000000, 대출실행년도: 2024, 이자율: 4.5, 대출기간: 2, 거치기간: 2, 무이자기간: 0 }
     ];
   }
 
